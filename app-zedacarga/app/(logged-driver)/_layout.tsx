@@ -1,11 +1,11 @@
-import '../tamagui-web.css'
+import '../../tamagui-web.css'
 
 import { useEffect } from 'react'
 import { StatusBar, useColorScheme } from 'react-native'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
 import { SplashScreen, Stack } from 'expo-router'
-import { Provider } from './Provider'
+import { Provider } from '../Provider'
 import { useTheme } from 'tamagui'
 
 export {
@@ -57,36 +57,9 @@ function RootLayoutNav() {
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       <Stack>
         <Stack.Screen
-          name="Index"
+          name="Login"
           options={{
             title: 'Inicio',
-            headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
-          }}
-        />
-
-        <Stack.Screen
-          name="(logged-driver)"
-          options={{
-            title: 'Login',
-            headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
-          }}
-        />
-
-        <Stack.Screen
-          name="Login User"
-          options={{
-            title: 'Login-user',
-            headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
-          }}
-        />
-
-<Stack.Screen
-          name="Login Driver"
-          options={{
-            title: 'Login-driver',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade', 
           }}

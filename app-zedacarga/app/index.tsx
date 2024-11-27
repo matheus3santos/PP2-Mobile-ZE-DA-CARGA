@@ -16,7 +16,7 @@ export default function Index() {
       <View style={styles.buttonContainer}>
         <Button
           onPress={() => {
-            router.push('/Login');
+            router.push('/Login-driver');
           }}
           style={styles.button}
         >
@@ -26,7 +26,7 @@ export default function Index() {
       <View style={styles.buttonContainer}>
         <Button
           onPress={() => {
-            router.push('/Register');
+            router.push('/Login-user');
           }}
           style={styles.button}
         >
