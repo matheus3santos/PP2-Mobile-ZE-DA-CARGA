@@ -57,9 +57,9 @@ function RootLayoutNav() {
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       <Stack>
         <Stack.Screen
-          name="Index"
+          name="index"
           options={{
-            title: 'Inicio',
+            title: 'Index',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade', 
           }}

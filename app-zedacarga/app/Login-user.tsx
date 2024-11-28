@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, View, TouchableOpacity, Text } from 'react-native';
+import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
 
 export default function Login() {
@@ -21,49 +21,50 @@ export default function Login() {
   };
 
   return (
-    <View className="flex-1 bg-white justify-center items-center">
-      <View className="justify-center items-center mb-6">
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
         <Image
-          
+          style={[styles.image, { resizeMode: 'stretch' }]}
           source={require('./public/images/logo.png')}
         />
       </View>
-      <View className="mb-4">
+      <View style={styles.textContainer}>
         <H4>ENTRAR</H4>
       </View>
 
-      <View className="w-3/5 items-center mb-4">
-        <View>
+      <View style={styles.formContainer}>
+        <View style={styles.inputGroup}>
           <H6>Email</H6>
           <Input
             value={email}
             onChangeText={setEmail}
-            className="w-full bg-white text-black rounded shadow border border-gray-300"
+            className="w-80 bg-white text-black rounded shadow hover:border-orange-600"
             placeholder="Digite seu e-mail"
           />
         </View>
-        <View>
+        <View style={[styles.inputGroup, { marginTop: 16, marginBottom: 18 }]}>
           <H6>Senha</H6>
           <Input
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
-            className="w-full bg-white text-black rounded shadow border border-gray-300"
+            className="w-80 bg-white text-black rounded shadow hover:border-orange-600"
             placeholder="Digite sua senha"
           />
         </View>
-        {error && <Text className="text-red-500 mt-2 text-center">{error}</Text>}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Button onPress={handleLogin} className="w-48 bg-orange-500 rounded-full mt-6 text-white">
+        <Button onPress={handleLogin} className="w-60 bg-orange-500 rounded-3xl text-white">
           Entrar
         </Button>
-        <H6 className="my-4">Ou</H6>
+
+        <H6 style={{ marginVertical: 16 }}>Ou</H6>
         <Button
           onPress={handleGoogleLogin}
           icon={
             <Image
               source={require('./public/images/google-icon.png')}
-              className="w-6 h-6 mr-2"
+              style={{ width: 24, height: 24, marginRight: 8 }}
             />
           }
           className="bg-orange-500 text-white"
@@ -72,9 +73,51 @@ export default function Login() {
         </Button>
 
         <TouchableOpacity>
-          <H6 className="text-blue-400 underline mt-4">Esqueceu a senha?</H6>
+          <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <H6 style={styles.forgotPasswordText}>Criar nova conta</H6>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  image: {
+    width: 320,
+    height: 320,
+  },
+  textContainer: {
+    marginBottom: 16,
+  },
+  formContainer: {
+    width: '80%',
+    alignItems: 'center',
+  },
+  inputGroup: {
+    width: '100%',
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  forgotPasswordText: {
+    color: 'blue',
+    textDecorationLine: 'underline',
+    marginTop: 16,
+  },
+});
