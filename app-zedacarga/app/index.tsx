@@ -30,7 +30,7 @@ export default function Index() {
           }}
           style={styles.button}
         >
-          Afretador
+          Cliente 
         </Button>
       </View>
     </View>

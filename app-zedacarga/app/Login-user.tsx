@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Image, View, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
 
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');

@@ -73,6 +73,7 @@ export default function Login() {
 
         <TouchableOpacity>
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
+        
         </TouchableOpacity>
       </View>
     </View>
