@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
   image: {
     width: 320,
     height: 320,
-    borderRadius: 24,
   },
   textContainer: {
     marginBottom: 16,

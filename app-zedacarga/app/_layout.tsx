@@ -75,7 +75,7 @@ function RootLayoutNav() {
         />
 
         <Stack.Screen
-          name="Login User"
+          name="Login-user"
           options={{
             title: 'Login-user',
             headerShown: false, // Opcional, oculta o cabeçalho
@@ -84,7 +84,7 @@ function RootLayoutNav() {
         />
 
 <Stack.Screen
-          name="Login Driver"
+          name="Login-driver"
           options={{
             title: 'Login-driver',
             headerShown: false, // Opcional, oculta o cabeçalho

@@ -10,29 +10,8 @@ expo-env.d.ts
 # but map can be ignored and just published on npm
 **/types/**/*.d.ts.map
 
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
 
-.turbo
 
-.ultra.cache.json
-tmp
-*.tsbuildinfo
-*.tmp.js
-yarn-error.log
-dist
-tsconfig.tsbuildinfo
-node_modules
-**/_
-**/tests/spec/out
-.DS_Store
-
-.next
-.vercel
 .tamagui
 .idea
 
@@ -43,6 +22,10 @@ node_modules
 .env.test.localp
 .env.production.local
 
-.expo
 ios
 android
+
+node_modules
+.expo
+.yarn
+yarn.lock
