@@ -29,7 +29,7 @@ export default function Login() {
         />
       </View>
       <View style={styles.textContainer}>
-        <H4>ENTRAR</H4>
+        <H4>FRETEIRO</H4>
       </View>
 
       <View style={styles.formContainer}>
@@ -58,18 +58,7 @@ export default function Login() {
           Entrar
         </Button>
         <H6 style={{ marginVertical: 16 }}>Ou</H6>
-        <Button
-          onPress={handleGoogleLogin}
-          icon={
-            <Image
-              source={require('./public/images/google-icon.png')}
-              style={{ width: 24, height: 24, marginRight: 8 }}
-            />
-          }
-          className="bg-orange-500 text-white"
-        >
-          Logar com o Google
-        </Button>
+
 
         <TouchableOpacity>
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
