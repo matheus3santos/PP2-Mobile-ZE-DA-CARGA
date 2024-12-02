@@ -61,7 +61,7 @@ function RootLayoutNav() {
           options={{
             title: 'Index',
             headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
+            animation: 'fade',
           }}
         />
 
@@ -70,7 +70,7 @@ function RootLayoutNav() {
           options={{
             title: 'Login',
             headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
+            animation: 'fade',
           }}
         />
 
@@ -79,18 +79,28 @@ function RootLayoutNav() {
           options={{
             title: 'Login-user',
             headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
+            animation: 'fade',
           }}
         />
 
-<Stack.Screen
+        <Stack.Screen
           name="Login-driver"
           options={{
             title: 'Login-driver',
             headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
+            animation: 'fade',
           }}
         />
+
+        <Stack.Screen
+          name="RegisterDriver"
+          options={{
+            title: 'RegisterDriver',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+        
       </Stack>
 
     </ThemeProvider>

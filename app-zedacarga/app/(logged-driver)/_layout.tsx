@@ -57,9 +57,9 @@ function RootLayoutNav() {
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       <Stack>
         <Stack.Screen
-          name="Login"
+          name="Home"
           options={{
-            title: 'Inicio',
+            title: 'Home',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade', 
           }}

@@ -76,9 +76,7 @@ export default function Login() {
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
         </TouchableOpacity>
 
-        <TouchableOpacity>
-          <H6 style={styles.forgotPasswordText}>Criar nova conta</H6>
-        </TouchableOpacity>
+        
       </View>
     </View>
   );
