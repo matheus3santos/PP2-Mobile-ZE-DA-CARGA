@@ -83,7 +83,25 @@ function RootLayoutNav() {
           }}
         />
 
-<Stack.Screen
+        <Stack.Screen
+          name="RegisterDriver"
+          options={{
+            title: 'Register-driver',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="RegisterDriverAddress"
+          options={{
+            title: 'Register-driver-address',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
           name="Login Driver"
           options={{
             title: 'Login-driver',
