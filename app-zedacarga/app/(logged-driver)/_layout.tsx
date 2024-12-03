@@ -61,9 +61,19 @@ function RootLayoutNav() {
           options={{
             title: 'Home',
             headerShown: false, // Opcional, oculta o cabeçalho
-            animation: 'fade', 
+            animation: 'fade',
           }}
         />
+
+        <Stack.Screen
+          name="Profile"
+          options={{
+            title: 'Profile',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+        
       </Stack>
 
     </ThemeProvider>
