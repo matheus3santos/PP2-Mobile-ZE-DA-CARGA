@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
+import { router } from 'expo-router';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -54,7 +56,7 @@ export default function Login() {
         </View>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Button onPress={handleLogin} className="marginTop-10 w-60 bg-orange-500 rounded-3xl mt-8 text-white">
+        <Button onPress={() => { router.push('/(logged-driver)/Home') }} className="marginTop-10 w-60 bg-orange-500 rounded-3xl mt-8 text-white">
           Entrar
         </Button>
         <H6 style={{ marginVertical: 16 }}>Ou</H6>
@@ -74,6 +76,12 @@ export default function Login() {
         <TouchableOpacity>
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
         
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <H6
+            style={styles.forgotPasswordText}
+            onPress={() => { router.push('/RegisterDriver') }}>Criar nova conta</H6>
         </TouchableOpacity>
       </View>
     </View>

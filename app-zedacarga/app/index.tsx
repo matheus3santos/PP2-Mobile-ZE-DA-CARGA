@@ -26,7 +26,7 @@ export default function Index() {
       <View style={styles.buttonContainer}>
         <Button
           onPress={() => {
-            router.push('/Register-driver');
+            router.push('/RegisterDriver');
           }}
           style={styles.button}
         >

@@ -98,20 +98,13 @@ export default function RegisterDriverAddress(){
         style={styles.input}
       />
 
-      <Text style={styles.label}>Estado</Text>
-      <TextInput
-        mode="outlined"
-        placeholder="Digite o estado"
-        value={estado2}
-        onChangeText={setEstado2}
-        style={styles.input}
-      />
+     
 
       <View style={styles.buttonContainer}>
         <Button mode="outlined" onPress={() => console.log('Voltar')}>
           Voltar
         </Button>
-        <Button mode="contained" onPress={() => console.log('Próximo')}>
+        <Button mode="contained" onPress={() => router.push('/RegisterDriverCNH')}>
           Next
         </Button>
       </View>

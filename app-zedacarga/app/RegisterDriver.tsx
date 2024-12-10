@@ -56,7 +56,7 @@ export default function RegisterDriver(){
         <Button mode="outlined" onPress={() => console.log('Back')}>
           Voltar
         </Button>
-        <Button mode="contained" onPress={() => router.push('/')}>
+        <Button mode="contained" onPress={() => router.push('/RegisterDriverAddress')}>
           Next
         </Button>
       </View>
