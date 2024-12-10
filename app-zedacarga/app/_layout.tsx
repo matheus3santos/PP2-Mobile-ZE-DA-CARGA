@@ -100,7 +100,16 @@ function RootLayoutNav() {
             animation: 'fade',
           }}
         />
-        
+
+        <Stack.Screen
+          name="(logged-user)"
+          options={{
+            title: '(logged-user)',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+
       </Stack>
 
     </ThemeProvider>
