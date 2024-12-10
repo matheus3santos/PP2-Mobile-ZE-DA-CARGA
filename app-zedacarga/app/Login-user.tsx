@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
+import { router } from 'expo-router';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,9 +10,10 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const handleLogin = () => {
-    if (email === 'teste@mock.com' && senha === '123456') {
+    if (email === 'teste@mail.com' && senha === '123456') {
       setError('');
       alert('Login realizado com sucesso!');
+      router.push('/(logged-user)/HomeUser');
     } else {
       setError('E-mail ou senha inválidos.');
     }
@@ -76,7 +79,7 @@ export default function Login() {
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
         </TouchableOpacity>
 
-        
+
       </View>
     </View>
   );

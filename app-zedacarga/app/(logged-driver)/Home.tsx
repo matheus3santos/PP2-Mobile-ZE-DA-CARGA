@@ -1,6 +1,6 @@
 import { H6 } from 'tamagui';
 import { View, StyleSheet } from 'react-native';
-import BottomBar from 'app/components/BottomBar';
+import BottomBarDriver from 'app/components/BottomBarDriver';
 
 export default function Index() {
   return (
@@ -10,7 +10,7 @@ export default function Index() {
         Incluir mapa, etc...
       </H6>
       <View style={styles.buttonContainer}></View>
-      <BottomBar screen="Home" />
+      <BottomBarDriver screen="Home" />
     </View>
   );
 }

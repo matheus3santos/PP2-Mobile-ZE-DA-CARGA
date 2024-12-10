@@ -3,12 +3,17 @@ import { Plus, LogOut } from '@tamagui/lucide-icons'
 
 import { Image, TouchableOpacity, ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import BottomBarDriver from "app/components/BottomBarDriver";
+import BottomBarUser from "app/components/BottomBarUser";
 // import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 // import axiosInstance from "app/config/axiosUrlConfig";
 
-export default function Profile() {
+export default function ProfileUser() {
+
+    const [userName, setUserName] = useState('Usuário Exemplo'); // Nome do usuário mockado
+    const [profileImage, setProfileImage] = useState<string | null>(
+        "https://via.placeholder.com/100" // URL de imagem mockada
+    );
 
     // const[token, setToken] = useState('');
     // const[username, setUsername] = useState('');
@@ -43,13 +48,36 @@ export default function Profile() {
     return (
         <View style={{ flex: 1, backgroundColor: 'white' }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+                {/* Área de Foto e Nome */}
                 <View style={{ alignItems: 'center', marginVertical: 20 }}>
-                    <H3 style={{ color: 'black' }}>Nome do usuário</H3>
+                    {profileImage ? (
+                        <Image
+                            source={{ uri: profileImage }}
+                            style={{
+                                width: 100,
+                                height: 100,
+                                borderRadius: 50,
+                                marginBottom: 10,
+                                backgroundColor: '#f0f0f0',
+                            }}
+                        />
+                    ) : (
+                        <Avatar
+                            circular
+                            size="$10"
+                            style={{
+                                marginBottom: 10,
+                                backgroundColor: '#e0e0e0',
+                            }}
+                        />
+                    )}
+                    <H3 style={{ color: 'black' }}>{userName}</H3>
                 </View>
+
                 <View style={{ alignItems: 'center' }}>
                     <Button
                         onPress={() => {
-                            // router.push('MyAddress')
+                            router.push('/(logged-user)/EditUser')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -58,43 +86,39 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                            // router.push('PaymentScreen')
+                            router.push('/(logged-user)/RegisterCardUser')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
                     >
-                        Informações do Veiculo
+                        Formas de pagamento
                     </Button>
+
                     <Button
                         onPress={() => {
-                            // router.push('NotificationScreen')
+                            router.push('/(logged-user)/HistoricTravelUser')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
                     >
-                        Carteira Digital
+                        Historico de viagens
                     </Button>
+
+
                     <Button
                         onPress={() => {
-                            // router.push('SupportScreen')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
-                    >
-                        Historico de entregas
-                    </Button>
-                    <Button
-                        onPress={() => {
-                        router.push('/')
+                            router.push('/')
                         }}
                         style={{ backgroundColor: 'red', color: 'white', width: 240, marginBottom: 10 }}
                         icon={LogOut}
                     >
                         Sair
                     </Button>
+
+                    
                 </View>
             </ScrollView>
-            <BottomBarDriver screen="Profile" />
+            <BottomBarUser screen="ProfileUser" />
         </View>
     )
 }

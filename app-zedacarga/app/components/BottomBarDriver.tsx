@@ -1,7 +1,7 @@
 import { Image, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 
-export default function BottomBar({ screen }: { screen: string }) {
+export default function BottomBarDriver({ screen }: { screen: string }) {
   return (
     <View
       style={{
