@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { router } from 'expo-router';
 
 const TravelDetailsScreen = () => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton}>
+      <TouchableOpacity style={styles.backButton}
+      onPress={() => router.push('/TravelHistory')}>
         <Text style={styles.backText}>←</Text>
       </TouchableOpacity>
       <Text style={styles.title}>Informações da viagem</Text>

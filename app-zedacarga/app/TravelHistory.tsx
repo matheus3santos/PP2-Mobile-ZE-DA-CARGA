@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
+import BottomBar from 'app/components/BottomBar';
+
 
 const travelHistory = [
   { id: '1', address: 'Rua Santo Elias', date: '6 de out.', time: '19:31', price: 'R$24,25' },
@@ -28,6 +30,10 @@ const TravelHistoryScreen = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton}
+      onPress={() => router.push('/(logged-driver)/Profile')}>
+        <Text style={styles.backText}>←</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Histórico de viagens</Text>
       <FlatList
         data={travelHistory}
@@ -35,6 +41,7 @@ const TravelHistoryScreen = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
+      <BottomBar screen="Home" />
     </View>
   );
 };
@@ -43,23 +50,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
-    padding: 20,
+    
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
+    marginLeft: 20,
   },
   list: {
     paddingBottom: 20,
+  },
+  backButton: {
+    marginBottom: 20,
+    marginTop: 20,
+    marginLeft: 20,
+   
+  },
+  backText: {
+    fontSize: 20,
+    color: '#555',
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F5F5F5',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 15,
+    marginLeft: 20,
+    marginRight: 20,
   },
   icon: {
     width: 40,

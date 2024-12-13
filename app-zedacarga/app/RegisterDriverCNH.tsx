@@ -92,11 +92,11 @@ export default function RegisterDriverCNH(){
      
 
       <View style={styles.buttonContainer}>
-        <Button mode="outlined" onPress={() => console.log('Voltar')}>
+        <Button mode="outlined" onPress={() => router.push('/RegisterDriverAddress')}>
           Voltar
         </Button>
         <Button mode="contained" onPress={() => console.log('Próximo')}>
-          Next
+          Confirmar Dados
         </Button>
       </View>
     </View>
