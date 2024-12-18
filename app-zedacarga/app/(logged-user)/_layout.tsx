@@ -15,7 +15,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: 'HomeUser',
+  initialRouteName: 'Home',
 }
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -57,13 +57,14 @@ function RootLayoutNav() {
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       <Stack>
         <Stack.Screen
-          name="HomeUser"
+          name="Home"
           options={{
-            title: 'HomeUser',
+            title: 'Home',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade',
           }}
         />
+
 
         <Stack.Screen
           name="ProfileUser"

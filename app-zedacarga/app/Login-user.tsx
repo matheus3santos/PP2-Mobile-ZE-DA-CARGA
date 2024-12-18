@@ -13,7 +13,7 @@ export default function Login() {
     if (email === 'teste@mail.com' && senha === '123456') {
       setError('');
       alert('Login realizado com sucesso!');
-      router.push('/(logged-user)/HomeUser');
+      router.push('/(logged-user)/Home');
     } else {
       setError('E-mail ou senha inválidos.');
     }

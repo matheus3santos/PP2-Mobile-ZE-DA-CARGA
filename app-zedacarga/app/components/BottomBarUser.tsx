@@ -16,7 +16,7 @@ export default function BottomBarUser({ screen }: { screen: string }) {
       }}
     >
       <TouchableOpacity
-        onPress={() => screen !== 'HomeUser' && router.push('/HomeUser')}
+        onPress={() => screen !== 'Home' && router.push('/Home')}
       >
         <Image
           style={{ width: 40, height: 40 }}
