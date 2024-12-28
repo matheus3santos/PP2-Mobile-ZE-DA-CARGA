@@ -79,6 +79,12 @@ export default function Login() {
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
         </TouchableOpacity>
 
+        <TouchableOpacity>
+          <H6
+            style={styles.forgotPasswordText}
+            onPress={() => { router.push('/RegisterUser') }}>Criar nova conta</H6>
+        </TouchableOpacity>
+
 
       </View>
     </View>

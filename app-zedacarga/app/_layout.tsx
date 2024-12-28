@@ -101,6 +101,16 @@ function RootLayoutNav() {
           }}
         />
 
+
+        <Stack.Screen
+          name="RegisterUser"
+          options={{
+            title: 'RegisterUser',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+
         <Stack.Screen
           name="(logged-user)"
           options={{
