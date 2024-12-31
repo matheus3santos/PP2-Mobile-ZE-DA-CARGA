@@ -3,6 +3,8 @@ import { View, StyleSheet, Modal, Text, TouchableOpacity, Dimensions } from 'rea
 import BottomBarUser from 'app/components/BottomBarUser';
 import MapView, { Marker } from 'react-native-maps';
 import { useState } from 'react';
+import { MapScreen } from './MapScreen';
+import { LocationPermissionsService } from 'app/services/LocationPermissionService';
 
 const { height } = Dimensions.get('window');
 
@@ -19,8 +21,13 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <>
+        <MapScreen />
+        <LocationPermissionsService />
+      </>
+
       {/* Mapa ao fundo */}
-      <MapView
+      {/* <MapView
         style={styles.map}
         initialRegion={{
           latitude: -23.55052,
@@ -36,10 +43,10 @@ export default function Home() {
           }}
           title="Meu Local"
         />
-      </MapView>
+      </MapView> */}
 
       {/* Botão para definir destino */}
-      <View style={styles.content}>
+      {/* <View style={styles.content}>
         <Button
           theme="blue"
           style={styles.button}
@@ -47,13 +54,13 @@ export default function Home() {
         >
           Definir destino
         </Button>
-      </View>
+      </View> */}
 
       {/* BottomBar para navegação */}
       <BottomBarUser screen="HomeUser" />
 
       {/* Modal para escolher local de origem e destino */}
-      <Modal visible={isLocationModalVisible} transparent={true} animationType="slide">
+      {/* <Modal visible={isLocationModalVisible} transparent={true} animationType="slide">
         <View style={styles.halfModal}>
           <Text style={styles.modalTitle}>Escolha sua rota</Text>
           <Input
@@ -78,10 +85,10 @@ export default function Home() {
             <Text style={styles.closeButtonText}>Fechar</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Modal para escolher a modalidade da corrida */}
-      <Modal visible={isRideModalVisible} transparent={true} animationType="slide">
+      {/* <Modal visible={isRideModalVisible} transparent={true} animationType="slide">
         <View style={styles.halfModal}>
           <Text style={styles.modalTitle}>Escolha a modalidade</Text>
           <TouchableOpacity style={styles.option}>
@@ -100,7 +107,7 @@ export default function Home() {
             <Text style={styles.closeButtonText}>Fechar</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 }
