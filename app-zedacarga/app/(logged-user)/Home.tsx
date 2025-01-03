@@ -5,6 +5,8 @@ import MapView, { Marker } from 'react-native-maps';
 import { useState } from 'react';
 import { MapScreen } from './MapScreen';
 import { LocationPermissionsService } from 'app/services/LocationPermissionService';
+import { ThemeProvider } from 'app/theme/ThemeProvider';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
 
@@ -21,10 +23,12 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <>
-        <MapScreen />
-        <LocationPermissionsService />
-      </>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <MapScreen />
+          <LocationPermissionsService />
+        </ThemeProvider>
+      </SafeAreaProvider>
 
       {/* Mapa ao fundo */}
       {/* <MapView

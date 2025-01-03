@@ -10,17 +10,17 @@ export const useMapScreen = () => {
     const mapRef = useRef<MapView>(null);
     const [userLocation, setUserLocation] =
         useState<UserLocationChangeEvent['nativeEvent']['coordinate']>();
-
-        useEffect(() => {
-            if (userLocation) {
-                mapRef.current?.animateToRegion({
-                    longitude: userLocation.longitude,
-                    latitude: userLocation.latitude,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA,
-                });
-            }
-        }, [userLocation]);
+    const [modalVisible, setModalVisible] = useState(false);
+    useEffect(() => {
+        if (userLocation) {
+            mapRef.current?.animateToRegion({
+                longitude: userLocation.longitude,
+                latitude: userLocation.latitude,
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA,
+            });
+        }
+    }, [userLocation]);
 
 
 
@@ -31,12 +31,19 @@ export const useMapScreen = () => {
         setUserLocation(coordinate)
     };
 
+    const handleMapSearchBarPress = () => {
+        setModalVisible(true);
+    }
+
+
     return {
         models: {
             mapRef,
+            modalVisible,
         },
         operations: {
             handleUserLocationChange,
+            handleMapSearchBarPress,
         },
     }
 };
