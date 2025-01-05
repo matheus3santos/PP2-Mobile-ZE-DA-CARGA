@@ -9,8 +9,8 @@ interface StyledPressableProps {
 export const StyledPressable = styled.Pressable<StyledPressableProps>(
   ({theme, insets}) => {
     return {
-      width: scale(60),
-      height: scale(60),
+      width: scale(45),
+      height: scale(45),
       borderRadius: scale(45 / 2),
       alignItems: 'center',
       justifyContent: 'center',

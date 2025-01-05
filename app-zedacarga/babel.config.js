@@ -1,5 +1,5 @@
 module.exports = (api) => {
-  api.cache(true)
+  api.cache(true);
   return {
     presets: [['babel-preset-expo', { jsxRuntime: 'automatic' }]],
     plugins: [
@@ -13,8 +13,21 @@ module.exports = (api) => {
         },
       ],
 
-      // NOTE: this is only necessary if you are using reanimated for animations
+      // Plugin do react-native-dotenv
+      [
+        'module:react-native-dotenv',
+        {
+          moduleName: '@env',
+          path: '.env',
+          blocklist: null,
+          allowlist: null,
+          safe: false,
+          allowUndefined: true,
+        },
+      ],
+
+      // Plugin necessário para o Reanimated
       'react-native-reanimated/plugin',
     ],
-  }
-}
+  };
+};
