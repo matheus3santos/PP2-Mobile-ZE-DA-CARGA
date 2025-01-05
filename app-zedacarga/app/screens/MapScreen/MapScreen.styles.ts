@@ -6,6 +6,6 @@ export const Container = styled.View({
 });
 
 export const StyledMapView = styled(MapView)({
-
+    
     flex:1
 })

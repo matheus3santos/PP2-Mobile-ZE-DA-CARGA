@@ -1,4 +1,4 @@
-import type {RideItem} from 'types/rideItem';
+import type {RideItem} from '../../types/rideItem';
 
 type Section = {
   title: String;

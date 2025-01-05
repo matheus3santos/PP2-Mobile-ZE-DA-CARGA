@@ -3,7 +3,7 @@ import { View, StyleSheet, Modal, Text, TouchableOpacity, Dimensions } from 'rea
 import BottomBarUser from 'app/components/BottomBarUser';
 import MapView, { Marker } from 'react-native-maps';
 import { useState } from 'react';
-import { MapScreen } from './MapScreen';
+import { MapScreen } from 'app/screens/MapScreen';
 import { LocationPermissionsService } from 'app/services/LocationPermissionService';
 import { ThemeProvider } from 'app/theme/ThemeProvider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,15 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 const { height } = Dimensions.get('window');
 
 export default function Home() {
-  const [isLocationModalVisible, setLocationModalVisible] = useState(false);
-  const [isRideModalVisible, setRideModalVisible] = useState(false);
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
 
-  const handleConfirmLocation = () => {
-    setLocationModalVisible(false);
-    setRideModalVisible(true); // Abre o modal de modalidade da corrida
-  };
 
   return (
     <View style={styles.container}>
@@ -37,7 +29,7 @@ export default function Home() {
           </GestureHandlerRootView>
       </SafeAreaProvider>
 
-      <BottomBarUser screen="HomeUser" />
+      {/* <BottomBarUser screen="HomeUser" /> */}
 
 
     </View>
