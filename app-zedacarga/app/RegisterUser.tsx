@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { H2, H6, Input, Button } from 'tamagui';
 import { Image, View } from 'react-native';
 import { router } from 'expo-router';
 import axiosInstance from './config/axiosUrlConfig';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { TextInputMask } from 'react-native-masked-text';
+
 
 export default function RegisterUser() {
     const [nome, setNome] = useState('');
@@ -12,7 +15,42 @@ export default function RegisterUser() {
     const [telefone, setTelefone] = useState('');
     const [cpf, setCpf] = useState('');
     const [dataNascimento, setDataNascimento] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
+    const [rua, setLogradouro] = useState('');
+    const [numero, setNumero] = useState('');
+    const [cep, setCep] = useState('');
+    const [error, setError] = useState('');
+
+
+    // Função para verificar o CEP
+    const verificarCEP = async () => {
+        if (cep.length === 8) {
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                // Se o CEP for válido, preenche o logradouro, caso contrário, mostra erro
+                if (data.erro) {
+                    setErro(true);
+                    setLogradouro('');
+                } else {
+                    setErro(false);
+                    setLogradouro(data.logradouro);
+                }
+            } catch (error) {
+                setErro(true);
+                setLogradouro('');
+                console.error('Erro ao buscar o CEP:', error);
+            }
+        } else {
+            setErro(true);
+            setLogradouro('');
+        }
+    };
+
+    // Chama a validação sempre que o CEP mudar
+    useEffect(() => {
+        verificarCEP();
+    }, [cep]);
 
     // const validateEmail = (email) => {
     //     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,6 +117,9 @@ export default function RegisterUser() {
             cpf: cpf,
             email: email,
             dataNascimento: dataNascimento,
+            rua: rua,
+            numero: numero,
+            cep: cep,
             // password: password
         }
         console.log(registerRequestData)
@@ -111,15 +152,27 @@ export default function RegisterUser() {
                         onChangeText={setNome}
                     />
                 </View>
+
+                {/* Data Nascimento com Máscara */}
                 <View>
-                    <H6 className="text-black">Data Nascimento</H6>
-                    <Input
-                        className="w-80 bg-white text-black"
-                        placeholder="Digite sua data de nascimento"
+                    <H6 className="text-black">DD/MM/YYYY</H6>
+                    <TextInputMask
+                        style={{
+                            width: '80%',
+                            backgroundColor: 'white',
+                            color: 'black',
+                            padding: 10,
+                            borderRadius: 5,
+                        }}
+                        type={'datetime'}
+                        options={{
+                            format: 'DD/MM/YYYY'
+                        }}
                         value={dataNascimento}
                         onChangeText={setDataNascimento}
                     />
                 </View>
+
                 <View className="mt-4">
                     <H6 className="text-black">Email</H6>
                     <Input
@@ -129,22 +182,73 @@ export default function RegisterUser() {
                         onChangeText={setEmail}
                     />
                 </View>
+
                 <View className="mt-4">
-                    <H6 className="text-black">CPF</H6>
-                    <Input
-                        className="w-80 bg-white text-black"
-                        placeholder="Digite seu número"
+                    <H6 className="text-black">999.999.999-99</H6>
+                    <TextInputMask
+                        style={{
+                            width: '80%',
+                            backgroundColor: 'white',
+                            color: 'black',
+                            padding: 10,
+                            borderRadius: 5,
+                        }}
+                        type={'custom'}
+                        options={{
+                            mask: '999.999.999-99'
+                        }}
                         value={cpf}
                         onChangeText={setCpf}
                     />
                 </View>
+
                 <View className="mt-4">
                     <H6 className="text-black">Telefone</H6>
-                    <Input
-                        className="w-80 bg-white text-black"
-                        placeholder="Digite seu número"
+                    <TextInputMask
+                        style={{
+                            width: '80%',
+                            backgroundColor: 'white',
+                            color: 'black',
+                            padding: 10,
+                            borderRadius: 5,
+                        }}
+                        type={'custom'}
+                        options={{
+                            mask: '(99) 99999-9999'
+                        }}
                         value={telefone}
                         onChangeText={setTelefone}
+                    />
+                </View>
+
+                <View className="mt-4">
+                    <H6 className="text-black">Rua</H6>
+                    <Input
+                        className="w-80 bg-white text-black"
+                        placeholder="Digite sua rua"
+                        value={rua}
+                        onChangeText={setLogradouro}
+                    />
+
+                </View>
+
+                <View className="mt-4">
+                    <H6 className="text-black">Número</H6>
+                    <Input
+                        className="w-80 bg-white text-black"
+                        placeholder="Digite o número"
+                        value={numero}
+                        onChangeText={setNumero}
+                    />
+                </View>
+
+                <View className="mt-4">
+                    <H6 className="text-black">CEP</H6>
+                    <Input
+                        className="w-80 bg-white text-black"
+                        placeholder="Digite o CEP"
+                        value={cep}
+                        onChangeText={setCep}
                     />
                 </View>
                 <View className="mt-4">
@@ -174,7 +278,7 @@ export default function RegisterUser() {
                 ) : null} */}
                 <Button
                     // Comentário em JSX deve estar dentro de {}
-                    onPress={() => {apiRegisterUser()}}
+                    onPress={() => { apiRegisterUser() }}
                     className="w-60 bg-orange-500 rounded-3xl mt-8 text-white"
                 >
                     Enviar
@@ -184,4 +288,8 @@ export default function RegisterUser() {
             </View>
         </View>
     );
+}
+
+function setErro(arg0: boolean) {
+    throw new Error('Function not implemented.');
 }
