@@ -2,31 +2,43 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { router } from 'expo-router';
+import axios from 'axios';
 
 
 export default function RegisterDriverCNH(){
 
 
-    const [cnh, setCnh] = useState('');
     const [renavam, setRenavam] = useState('');
     const [placa, setPlaca] = useState('');
-    const [documentacao, setDocumentacao] = useState('');
     const [ano, setAno] = useState('');
     const [modelo, setModelo] = useState('');
     const [cor, setCor] = useState('');
    
 
+   const apiRegisterUser = async () => {
+        const registerRequestData = {
+            renavam: renavam,
+            placa: placa,
+            ano: ano,
+            modelo: modelo,
+            cor : cor
+        }
+        console.log(registerRequestData)
+        try{
+            await axios.post("https://2856-200-238-97-165.ngrok-free.app/api/motorista", registerRequestData).then((response)=>{
+                console.log(response)
+                alert("Informações salvas com sucesso")
+            })
+        }
+        catch (e) {
+            alert(e)
+        }
+    }
+
     return(
 
         <View style={styles.container}>
-      <Text style={styles.label}>CNH</Text>
-      <TextInput
-        mode="outlined"
-        placeholder="Digite o CNH"
-        value={cnh}
-        onChangeText={setCnh}
-        style={styles.input}
-      />
+      
 
       <Text style={styles.label}>Renavam</Text>
       <TextInput
@@ -43,15 +55,6 @@ export default function RegisterDriverCNH(){
         placeholder="Digite a cidade"
         value={placa}
         onChangeText={setPlaca}
-        style={styles.input}
-      />
-
-      <Text style={styles.label}>Documentação</Text>
-      <TextInput
-        mode="outlined"
-        placeholder="Digite o estado"
-        value={documentacao}
-        onChangeText={setDocumentacao}
         style={styles.input}
       />
 
@@ -95,7 +98,7 @@ export default function RegisterDriverCNH(){
         <Button mode="outlined" onPress={() => router.push('/RegisterDriverAddress')}>
           Voltar
         </Button>
-        <Button mode="contained" onPress={() => console.log('Próximo')}>
+        <Button mode="contained" onPress={apiRegisterUser}>
           Confirmar Dados
         </Button>
       </View>

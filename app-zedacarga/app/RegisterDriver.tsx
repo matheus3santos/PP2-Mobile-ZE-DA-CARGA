@@ -1,15 +1,50 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { router } from 'expo-router';
+import axios from 'axios';
 
 
 export default function RegisterDriver(){
     
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const [numeroTelefone, setNumeroTelefone] = useState('');
     const [cpf, setCpf] = useState('');
+    const [numeroCnh, setNumeroCnh] = useState('');
+
+
+    const apiRegisterUser = async () => {
+      const registerRequestData = {
+          nome: name,
+          numeroTelefone: numeroTelefone,
+          cpf: cpf,
+          email: email,
+          numeroCnh : numeroCnh
+      }
+      console.log(registerRequestData)
+      try{
+        const response = await axios.post('https://2856-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+
+        if (response.status === 200 || response.status === 201) {
+          console.log('Sucesso:', response.data);
+          alert('Dados enviados com sucesso!');
+        } else {
+          console.error('Erro na resposta:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Erro na requisição:', error.response || error.message);
+        alert('Houve um erro ao enviar os dados.');
+          //await axiosInstance.post("/api/motorista", registerRequestData).then((response)=>{
+              //console.log(response)
+              //alert("Informações salvas com sucesso")
+          //})
+      }
+      //catch (e) {
+         // alert(e)
+      //}
+  }
+
 
   return (
     <View style={styles.container}>
@@ -37,8 +72,17 @@ export default function RegisterDriver(){
         mode="outlined"
         placeholder="(00) 9 9999-9999"
         keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
+        value={numeroTelefone}
+        onChangeText={setNumeroTelefone}
+        style={styles.input}
+      />
+
+      <Text style={styles.label}>CNH</Text>
+      <TextInput
+        mode="outlined"
+        placeholder="Digite o CNH"
+        value={numeroCnh}
+        onChangeText={setNumeroCnh}
         style={styles.input}
       />
 
@@ -56,20 +100,17 @@ export default function RegisterDriver(){
         <Button mode="outlined" onPress={() => router.push('/Login-driver')}>
           Voltar
         </Button>
+        <Button mode="outlined" onPress={apiRegisterUser}>
+          Salvar informações 
+        </Button>
         <Button mode="contained" onPress={() => router.push('/RegisterDriverAddress')}>
           Next
         </Button>
       </View>
     </View>
   );
-};
+}
 
-//<Button
-//onPress={() => {
-  //  router.push('/Register-driver');
- // }}
- // style={styles.button}
-//>
 
 
 

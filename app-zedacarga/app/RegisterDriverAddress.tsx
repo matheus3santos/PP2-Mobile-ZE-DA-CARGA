@@ -2,40 +2,72 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { router } from 'expo-router';
+import axios from 'axios';
+
 
 
 export default function RegisterDriverAddress(){
 
 
-    const [endereco, setEndereco] = useState('');
+    const [bairro, setBairro] = useState('');
     const [rua, setRua] = useState('');
     const [cidade, setCidade] = useState('');
     const [estado, setEstado] = useState('');
     const [numero, setNumero] = useState('');
     const [cep, setCep] = useState('');
     const [complemento, setComplemento] = useState('');
-    const [cidade2, setCidade2] = useState('');
-    const [estado2, setEstado2] = useState('');
 
+
+     const apiRegisterUser = async () => {
+          const registerRequestData = {
+              bairro: bairro,
+              rua: rua,
+              cidade: cidade,
+              estado: estado,
+              numero : numero,
+              cep: cep,
+              complemento: complemento,
+          }
+          console.log(registerRequestData)
+          try{
+            const response = await axios.post('https://2856-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+
+            if (response.status === 200 || response.status === 201) {
+              console.log('Sucesso:', response.data);
+              alert('Dados enviados com sucesso!');
+            } else {
+              console.error('Erro na resposta:', response.status, response.statusText);
+            }
+          }
+          catch (error) {
+            console.error('Erro na requisição:', error.response || error.message);
+            alert('Houve um erro ao enviar os dados.');
+              //await axiosInstance.post("/api/motorista", registerRequestData).then((response)=>{
+                  //console.log(response)
+                  //alert("Informações salvas com sucesso")
+              //})
+          }
+      }
 
     return(
 
-        <View style={styles.container}>
-      <Text style={styles.label}>Endereço</Text>
-      <TextInput
-        mode="outlined"
-        placeholder="Digite o endereço"
-        value={endereco}
-        onChangeText={setEndereco}
-        style={styles.input}
-      />
-
+      <View style={styles.container}>
+        
       <Text style={styles.label}>Rua</Text>
       <TextInput
         mode="outlined"
         placeholder="Digite a rua"
         value={rua}
         onChangeText={setRua}
+        style={styles.input}
+      />
+
+      <Text style={styles.label}>Bairro</Text>
+      <TextInput
+        mode="outlined"
+        placeholder="Digite a rua"
+        value={bairro}
+        onChangeText={setBairro}
         style={styles.input}
       />
 
@@ -89,20 +121,17 @@ export default function RegisterDriverAddress(){
         style={styles.input}
       />
 
-      <Text style={styles.label}>Cidade</Text>
-      <TextInput
-        mode="outlined"
-        placeholder="Digite a cidade"
-        value={cidade2}
-        onChangeText={setCidade2}
-        style={styles.input}
-      />
+      
+      
 
      
 
       <View style={styles.buttonContainer}>
         <Button mode="outlined" onPress={() => router.push('/RegisterDriver')}>
           Voltar
+        </Button>
+        <Button mode="outlined" onPress={apiRegisterUser}>
+           Salvar informações 
         </Button>
         <Button mode="contained" onPress={() => router.push('/RegisterDriverCNH')}>
           Next
