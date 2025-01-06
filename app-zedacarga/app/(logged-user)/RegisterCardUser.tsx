@@ -63,7 +63,9 @@ const CardManagementScreen = () => {
                                     onPress={() => handleDeleteCard(card.id)}
                                     theme="red"
                                 >
-                                    Excluir
+                                    <Text>
+                                        Excluir
+                                    </Text>
                                 </Button>
                             </ListItem>
                         ))

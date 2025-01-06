@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {scale} from 'react-native-size-matters';
 
-import {ridesData} from '../../components/ChooseRideBottomSheet/mockData';
+import {ridesData} from './mockData';
 import type {RideItem} from '../../types/rideItem';
 
 interface UseChooseRideBottomSheetProps {

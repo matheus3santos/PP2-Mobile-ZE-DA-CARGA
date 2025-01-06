@@ -1,20 +1,21 @@
 import React from 'react';
-import {Marker} from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_MAPS_API_KEY} from '@env';
-import {useTheme} from '@emotion/react';
-import {scale} from 'react-native-size-matters';
+import { GOOGLE_MAPS_API_KEY } from '@env';
+import { useTheme } from '@emotion/react';
+import { scale } from 'react-native-size-matters';
+import BottomBarUser from 'app/components/BottomBarUser';
 
-import {RoundButton} from '../../components/RoundButton';
-import {MapSearchBar} from '../../components/MapSearchBar';
-import {DestinationModal} from '../../components/DestinationModal';
-import {ChooseRideBottomSheet} from '../../components/ChooseRideBottomSheet';
+import { RoundButton } from '../../components/RoundButton';
+import { MapSearchBar } from '../../components/MapSearchBar';
+import { DestinationModal } from '../../components/DestinationModal';
+import { ChooseRideBottomSheet } from '../../components/ChooseRideBottomSheet';
 
-import {useMapScreen} from './useMapScreen';
-import {StyledMapView, Container} from './MapScreen.styles';
+import { useMapScreen } from './useMapScreen';
+import { StyledMapView, Container } from './MapScreen.styles';
 
 export const MapScreen = () => {
-  const {models, operations} = useMapScreen();
+  const { models, operations } = useMapScreen();
   const theme = useTheme();
 
   const renderMapMarkers = () => {
@@ -29,7 +30,7 @@ export const MapScreen = () => {
         ref={models.mapRef}
         showsUserLocation
         onUserLocationChange={operations.handleUserLocationChange}
-        showsMyLocationButton={false}
+        showsMyLocationButton={true}
         showsCompass={false}>
         {renderMapMarkers()}
         <MapViewDirections
@@ -59,6 +60,8 @@ export const MapScreen = () => {
           mapDirections={models.mapDirections}
         />
       ) : null}
+
+
     </Container>
   );
 };

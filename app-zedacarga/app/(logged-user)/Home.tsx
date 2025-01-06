@@ -18,7 +18,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaProvider>
+      {/* <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ThemeProvider>
             <UserLocationStateContextProvider>
@@ -26,11 +26,10 @@ export default function Home() {
               <LocationPermissionsService />
             </UserLocationStateContextProvider>
           </ThemeProvider>
-          </GestureHandlerRootView>
-      </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </SafeAreaProvider> */}
 
-      {/* <BottomBarUser screen="HomeUser" /> */}
-
+      <BottomBarUser screen="HomeUser" />
 
     </View>
   );

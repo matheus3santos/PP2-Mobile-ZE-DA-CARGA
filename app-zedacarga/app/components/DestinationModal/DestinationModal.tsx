@@ -4,8 +4,8 @@ import {scale} from 'react-native-size-matters';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import type {LatLng} from 'react-native-maps';
 
-import {RoundButton} from '../RoundButton/';
-import {useDestinationModal} from '../DestinationModal/useDestinationModal';
+import {RoundButton} from '../RoundButton';
+import {useDestinationModal} from './useDestinationModal';
 import {PlaceItem} from '../PlaceItem/PlaceItem';
 import type {TextSearchItem} from '../../models/places/types/TextSearchItem';
 import {Spacer} from '../common/Spacer/Spacer';

@@ -7,7 +7,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {rideSheetSnapPoints} from '../../constants/bottomSheetSnapPoints';
 import type {RideItem} from '../../types/rideItem';
 import {calculateRidePrice} from '../../utils/calculateRidePrice';
-import {SectionHeader} from '../../components/ChooseRideBottomSheet/components/SectionHeader';
+import {SectionHeader} from './components/SectionHeader';
 
 import {ChooseRideItem} from './components/ChooseRideItem';
 import {ridesData} from './mockData';
