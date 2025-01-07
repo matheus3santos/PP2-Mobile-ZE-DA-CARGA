@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import axiosInstance from './config/axiosUrlConfig';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { TextInputMask } from 'react-native-masked-text';
+import { styles } from '../styles/RegisterUser.style';
 
 
 export default function RegisterUser() {
@@ -138,33 +139,31 @@ export default function RegisterUser() {
             <View className='flex justify-center items-center mt-8'>
                 <Image
                     source={require('./public/images/logo.png')}
-                    style={{ width: 100, height: 100 }}
+                    style={{
+                        marginTop:30,
+                        width: 100,
+                        height: 100,
+                        justifyContent: 'center',
+                        alignSelf: 'center',
+                    }}
                     className="w-32 h-32"
                 />
             </View>
-            <H2 className="text-center text-orange-500">Registrar</H2>
             <View className="flex items-center mt-4">
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Nome</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Nome</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite seu nome"
                         value={nome}
                         onChangeText={setNome}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Data de Nascimento</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Data de Nascimento</H6>
                     <TextInputMask
-                        style={{
-                            width: '100%',
-                            backgroundColor: 'white',
-                            color: 'black',
-                            padding: 10,
-                            borderRadius: 5,
-                            borderColor: 'blue',
-                        }}
+                        style={styles.input}
                         type={'datetime'}
                         placeholder='DD/MM/YYYY'
                         options={{
@@ -175,26 +174,20 @@ export default function RegisterUser() {
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Email</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Email</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite seu e-mail"
                         value={email}
                         onChangeText={setEmail}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">CPF</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>CPF</H6>
                     <TextInputMask
-                        style={{
-                            width: '100%',
-                            backgroundColor: 'white',
-                            color: 'black',
-                            padding: 10,
-                            borderRadius: 5,
-                        }}
+                        style={styles.input}
                         type={'custom'}
                         placeholder='999.999.999-99'
                         options={{
@@ -205,77 +198,68 @@ export default function RegisterUser() {
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Telefone</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Telefone</H6>
                     <TextInputMask
-                        style={{
-                            width: '80%',
-                            backgroundColor: 'white',
-                            color: 'black',
-                            padding: 10,
-                            borderRadius: 5,
-                            borderColor: 'brown',
-                            marginLeft : 10,
-                            borderWidth: 2
-                        }}
+                        style={styles.input}
                         type={'custom'}
-                        placeholder='(99) 99999-9999'
+                        placeholder="(99) 99999-9999"
                         options={{
-                            mask: '(99) 99999-9999'
+                            mask: '(99) 99999-9999',
                         }}
                         value={telefone}
                         onChangeText={setTelefone}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Rua</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Rua</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite sua rua"
                         value={rua}
                         onChangeText={setLogradouro}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Número</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Número</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite o número"
                         value={numero}
                         onChangeText={setNumero}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">CEP</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>CEP</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite o CEP"
                         value={cep}
                         onChangeText={setCep}
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Senha</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Senha</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Digite sua senha"
                     />
                 </View>
 
-                <View className="w-80 mt-4 border border-blue-500 rounded">
-                    <H6 className="text-black">Confirmar senha</H6>
+                <View style={styles.container}>
+                    <H6 style={styles.label}>Confirmar senha</H6>
                     <Input
-                        className="bg-white text-black"
+                        style={styles.input}
                         placeholder="Confirme sua senha"
                     />
                 </View>
 
                 <Button
-                    onPress={() => { apiRegisterUser() }}
+                    onPress={() => { apiRegisterUser(); router.push('/Login-user') }}
                     style={{
                         width: '60%',
                         backgroundColor: 'green',
@@ -284,6 +268,8 @@ export default function RegisterUser() {
                         borderRadius: 5,
                         justifyContent: 'center',
                         alignSelf: 'center',
+                        marginBottom: 30,
+                        marginTop: 20,
                     }}
                 >
                     Enviar

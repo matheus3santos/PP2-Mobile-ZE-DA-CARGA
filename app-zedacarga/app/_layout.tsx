@@ -147,7 +147,20 @@ function RootLayoutNav() {
           }}
         />
 
+        {/* <Stack.Screen
+          name="CurrentToast"
+          options={{
+            title: 'CurrentToast',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        /> */}
+
+
+
       </Stack>
+
+
 
     </ThemeProvider>
   )
