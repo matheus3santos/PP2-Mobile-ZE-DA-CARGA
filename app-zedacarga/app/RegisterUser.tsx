@@ -212,7 +212,7 @@ export default function RegisterUser() {
                     />
                 </View>
 
-                <View style={styles.container}>
+                {/* <View style={styles.container}>
                     <H6 style={styles.label}>Rua</H6>
                     <Input
                         style={styles.input}
@@ -240,7 +240,7 @@ export default function RegisterUser() {
                         value={cep}
                         onChangeText={setCep}
                     />
-                </View>
+                </View> */}
 
                 <View style={styles.container}>
                     <H6 style={styles.label}>Senha</H6>
@@ -272,7 +272,7 @@ export default function RegisterUser() {
                         marginTop: 20,
                     }}
                 >
-                    Enviar
+                    Cadastrar
                 </Button>
             </View>
         </ScrollView>

@@ -20,7 +20,8 @@ export default function Home() {
   return (
     <View style={styles.container}>
       {/* Mapa ao fundo */}
-      <MapView
+
+      {/* <MapView
         style={styles.map}
         initialRegion={{
           latitude: -23.55052,
@@ -36,7 +37,8 @@ export default function Home() {
           }}
           title="Meu Local"
         />
-      </MapView>
+      </MapView> */}
+
 
       {/* Botão para definir destino */}
       <View style={styles.content}>

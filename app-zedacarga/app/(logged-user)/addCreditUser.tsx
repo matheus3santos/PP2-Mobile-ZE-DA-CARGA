@@ -1,37 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Image } from "react-native";
 import { Button, H4, H5, Input, Text } from "tamagui";
 import { Picker } from "@react-native-picker/picker";
+import axiosInstance from '../config/axiosUrlConfig';
+import { router } from 'expo-router';
+
+
 
 export default function addCreditUser() {
   const [numeroCartao, setNumeroCartao] = useState("");
-  const [dataValidade, setDataValidade] = useState("");
+  const [dataVencimento, setDataVencimento] = useState("");
   const [nomeTitular, setNomeTitular] = useState("");
+  const [tipoCartao, setTipoCartao] = useState("");
   const [cvv, setCvv] = useState("");
-  const [cepCobranca, setCepCobranca] = useState("");
-  const [estadoCobranca, setEstadoCobranca] = useState("");
-  const [cidadeCobranca, setCidadeCobranca] = useState("");
-  const [enderecoCobranca, setEnderecoCobranca] = useState("");
 
-  const consultarCEP = () => {
-    // Valores mockados
-    console.log("Consultando CEP:", cepCobranca);
-    setEstadoCobranca("SP");
-    setCidadeCobranca("São Paulo");
-    setEnderecoCobranca("Rua Fictícia, 123");
-  };
 
-  const apiRegisterNewCard = () => {
-    console.log("Novo cartão registrado:", {
+
+  const apiRegisterNewCard = async () => {
+    const registerRequestData = {
       numeroCartao,
-      dataValidade,
-      nomeTitular,
+      dataVencimento,
       cvv,
-      cepCobranca,
-      estadoCobranca,
-      cidadeCobranca,
-      enderecoCobranca,
-    });
+      tipoCartao,
+    }
+    console.log(registerRequestData)
+    try {
+      await axiosInstance.post("/api/cliente/cartoes/{cliente}", registerRequestData).then((response) => {
+        console.log(response)
+      })
+    }
+    catch (e) {
+      alert(e)
+    }
     alert("Cartão registrado com sucesso!");
   };
 
@@ -56,8 +56,8 @@ export default function addCreditUser() {
 
             <H5>Data de validade</H5>
             <Input
-              value={dataValidade}
-              onChangeText={setDataValidade}
+              value={dataVencimento}
+              onChangeText={setDataVencimento}
               placeholder="MM/AA"
               style={{ marginBottom: 16 }}
             />
@@ -78,53 +78,7 @@ export default function addCreditUser() {
               style={{ marginBottom: 16 }}
             />
 
-            <H5>CEP de cobrança</H5>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-              <Input
-                value={cepCobranca}
-                onChangeText={setCepCobranca}
-                placeholder="Digite o CEP"
-                style={{ flex: 1 }}
-              />
-              <Button onPress={consultarCEP} style={{ marginLeft: 8 }}>
-                Consultar
-              </Button>
-            </View>
-
-            <H5>Estado de cobrança</H5>
-            <Picker
-              selectedValue={estadoCobranca}
-              onValueChange={setEstadoCobranca}
-              style={{
-                borderWidth: 1,
-                borderRadius: 8,
-                borderColor: "gray",
-                marginBottom: 16,
-              }}
-            >
-              <Picker.Item label="Selecione um estado" value="" />
-              <Picker.Item label="São Paulo" value="SP" />
-              <Picker.Item label="Rio de Janeiro" value="RJ" />
-              {/* Adicione mais estados se necessário */}
-            </Picker>
-
-            <H5>Cidade de cobrança</H5>
-            <Input
-              value={cidadeCobranca}
-              onChangeText={setCidadeCobranca}
-              placeholder="Cidade"
-              style={{ marginBottom: 16 }}
-            />
-
-            <H5>Endereço de cobrança</H5>
-            <Input
-              value={enderecoCobranca}
-              onChangeText={setEnderecoCobranca}
-              placeholder="Endereço"
-              style={{ marginBottom: 16 }}
-            />
-
-            <Button onPress={apiRegisterNewCard}>
+            <Button onPress={() => { apiRegisterNewCard(); router.push('/(logged-user)/Home') }} >
               Registrar novo cartão
             </Button>
           </View>
