@@ -9,9 +9,9 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}></View>
-    
+
       <View style={styles.buttonContainer}></View>
-      <BottomActiveFrete/>
+      <BottomActiveFrete />
 
       <BottomBar screen="Home" />
     </View>

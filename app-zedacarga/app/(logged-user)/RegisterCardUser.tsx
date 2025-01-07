@@ -49,7 +49,7 @@ const CardManagementScreen = () => {
                         cards.map((card) => (
                             <ListItem
                                 key={card.id}
-                                pressable
+                                // pressable
                                 bg="$backgroundSoft"
                                 borderRadius="$3"
                                 space="$4"
