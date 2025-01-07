@@ -44,7 +44,7 @@ export default function Login() {
             placeholder="Digite seu e-mail"
           />
         </View>
-        <View style={[styles.inputGroup, { marginTop: 16 }]}>
+        <View style={[styles.inputGroup, { marginTop: 16, marginBottom: 18 }]}>
           <H6>Senha</H6>
           <Input
             value={senha}
@@ -59,10 +59,9 @@ export default function Login() {
         <Button onPress={() => { router.push('/(logged-driver)/Home') }} className="marginTop-10 w-60 bg-orange-500 rounded-3xl mt-8 text-white">
           Entrar
         </Button>
-        <H6 style={{ marginVertical: 16 }}>Ou</H6>
 
         <TouchableOpacity>
-          <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
+          <H6 style={styles.forgotPasswordText}>Esqueceu a senha ?</H6>
 
         </TouchableOpacity>
 
