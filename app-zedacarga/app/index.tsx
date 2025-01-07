@@ -26,11 +26,11 @@ export default function Index() {
       <View style={styles.buttonContainer}>
         <Button
           onPress={() => {
-            router.push('/Login-user');
+            router.push('/RegisterDriver');
           }}
           style={styles.button}
         >
-          Afretador
+          Cliente 
         </Button>
       </View>
     </View>

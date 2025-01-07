@@ -84,6 +84,53 @@ function RootLayoutNav() {
         />
 
         <Stack.Screen
+          name="RegisterDriver"
+          options={{
+            title: 'Register-driver',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="RegisterDriverAddress"
+          options={{
+            title: 'Register-driver-address',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="RegisterDriverCNH"
+          options={{
+            title: 'Register-driver-address',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="TravelHistory"
+          options={{
+            title: 'TravelHistory',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="InfoTravel"
+          options={{
+            title: 'InfoTravel',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="Login Driver"
+        <Stack.Screen
           name="Login-driver"
           options={{
             title: 'Login-driver',

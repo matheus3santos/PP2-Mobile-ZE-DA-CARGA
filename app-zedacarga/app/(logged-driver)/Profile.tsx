@@ -3,7 +3,7 @@ import { Plus, LogOut } from '@tamagui/lucide-icons'
 
 import { Image, TouchableOpacity, ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import BottomBarDriver from "app/components/BottomBarDriver";
+import BottomBar from "app/components/BottomBar";
 // import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 // import axiosInstance from "app/config/axiosUrlConfig";
@@ -76,7 +76,7 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                            // router.push('SupportScreen')
+                             router.push('/TravelHistory')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -94,7 +94,7 @@ export default function Profile() {
                     </Button>
                 </View>
             </ScrollView>
-            <BottomBarDriver screen="Profile" />
+            <BottomBar screen="Profile" />
         </View>
     )
 }

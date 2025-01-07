@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
+import { router } from 'expo-router';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -62,6 +64,13 @@ export default function Login() {
 
         <TouchableOpacity>
           <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
+        
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <H6
+            style={styles.forgotPasswordText}
+            onPress={() => { router.push('/RegisterDriver') }}>Criar nova conta</H6>
         </TouchableOpacity>
 
         <TouchableOpacity>
