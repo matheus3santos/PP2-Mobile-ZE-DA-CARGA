@@ -3,56 +3,59 @@ import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { router } from 'expo-router';
 import axios from 'axios';
+import axiosInstance from './config/axiosUrlConfig';
 
 
 
-export default function RegisterDriverAddress(){
 
 
-    const [bairro, setBairro] = useState('');
-    const [rua, setRua] = useState('');
-    const [cidade, setCidade] = useState('');
-    const [estado, setEstado] = useState('');
-    const [numero, setNumero] = useState('');
-    const [cep, setCep] = useState('');
-    const [complemento, setComplemento] = useState('');
+export default function RegisterDriverAddress() {
 
 
-     const apiRegisterUser = async () => {
-          const registerRequestData = {
-              bairro: bairro,
-              rua: rua,
-              cidade: cidade,
-              estado: estado,
-              numero : numero,
-              cep: cep,
-              complemento: complemento,
-          }
-          console.log(registerRequestData)
-          try{
-            const response = await axios.post('https://2856-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+  const [bairro, setBairro] = useState('');
+  const [rua, setRua] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [numero, setNumero] = useState('');
+  const [cep, setCep] = useState('');
+  const [complemento, setComplemento] = useState('');
 
-            if (response.status === 200 || response.status === 201) {
-              console.log('Sucesso:', response.data);
-              alert('Dados enviados com sucesso!');
-            } else {
-              console.error('Erro na resposta:', response.status, response.statusText);
-            }
-          }
-          catch (error) {
-            console.error('Erro na requisição:', error.response || error.message);
-            alert('Houve um erro ao enviar os dados.');
-              //await axiosInstance.post("/api/motorista", registerRequestData).then((response)=>{
-                  //console.log(response)
-                  //alert("Informações salvas com sucesso")
-              //})
-          }
+
+  const apiRegisterUser = async () => {
+    const registerRequestData = {
+      bairro: bairro,
+      rua: rua,
+      cidade: cidade,
+      estado: estado,
+      numero: numero,
+      cep: cep,
+      complemento: complemento,
+    }
+    console.log(registerRequestData)
+    try {
+      const response = await axiosInstance.post("/api/motorista", registerRequestData);
+
+      if (response.status === 200 || response.status === 201) {
+        console.log('Sucesso:', response.data);
+        alert('Dados enviados com sucesso!');
+      } else {
+        console.error('Erro na resposta:', response.status, response.statusText);
       }
+    }
+    catch (error) {
+      console.error('Erro na requisição:', error.response || error.message);
+      alert('Houve um erro ao enviar os dados.');
+      //await axiosInstance.post("/api/motorista", registerRequestData).then((response)=>{
+      //console.log(response)
+      //alert("Informações salvas com sucesso")
+      //})
+    }
+  }
 
-    return(
+  return (
 
-      <View style={styles.container}>
-        
+    <View style={styles.container}>
+
       <Text style={styles.label}>Rua</Text>
       <TextInput
         mode="outlined"
@@ -121,17 +124,17 @@ export default function RegisterDriverAddress(){
         style={styles.input}
       />
 
-      
-      
 
-     
+
+
+
 
       <View style={styles.buttonContainer}>
         <Button mode="outlined" onPress={() => router.push('/RegisterDriver')}>
           Voltar
         </Button>
         <Button mode="outlined" onPress={apiRegisterUser}>
-           Salvar informações 
+          Salvar informações
         </Button>
         <Button mode="contained" onPress={() => router.push('/RegisterDriverCNH')}>
           Next
@@ -139,43 +142,35 @@ export default function RegisterDriverAddress(){
       </View>
     </View>
 
-    );
+  );
 };
 
-    const styles = StyleSheet.create({
-        container: {
-          flex: 1,
-          padding: 20,
-          backgroundColor: '#fff',
-        },
-        label: {
-          fontSize: 16,
-          marginBottom: 5,
-        },
-        input: {
-          marginBottom: 15,
-        },
-        row: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        },
-        halfInput: {
-          width: '48%',
-        },
-        buttonContainer: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginTop: 20,
-        },
-      });
-
-
-    
-    
-  
-    
-     
-      
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  input: {
+    marginBottom: 15,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  halfInput: {
+    width: '48%',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+});
 
 
 
@@ -183,6 +178,14 @@ export default function RegisterDriverAddress(){
 
 
 
-  
+
+
+
+
+
+
+
+
+
 
 

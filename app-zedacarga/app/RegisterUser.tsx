@@ -230,17 +230,21 @@ export default function RegisterUser() {
                         value={numero}
                         onChangeText={setNumero}
                     />
-                </View>
+                </View> */}
 
                 <View style={styles.container}>
                     <H6 style={styles.label}>CEP</H6>
-                    <Input
+                    <TextInputMask
                         style={styles.input}
                         placeholder="Digite o CEP"
+                        type={'custom'}
+                        options={{
+                            mask: '99999-999',
+                        }}
                         value={cep}
                         onChangeText={setCep}
                     />
-                </View> */}
+                </View> 
 
                 <View style={styles.container}>
                     <H6 style={styles.label}>Senha</H6>

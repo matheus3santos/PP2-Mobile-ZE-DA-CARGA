@@ -15,7 +15,7 @@ interface Card {
 const CardManagementScreen = () => {
     const router = useRouter();
     const [cards, setCards] = useState<Card[]>([]);  // Use o tipo Card aqui
-    const clienteId = "12345";  // ID fixo do cliente para fins de teste
+    const clienteId = "1";  // ID fixo do cliente para fins de teste
 
     // Função para buscar os cartões cadastrados na API
     const fetchCards = async () => {
@@ -42,7 +42,7 @@ const CardManagementScreen = () => {
     const handleDeleteCard = async (id: number) => {
         try {
             // Deleta o cartão passando o ID do cliente e o ID do cartão
-            await axiosInstance.delete(`/api/cliente/cartoes/${clienteId}/${id}`);
+            await axiosInstance.delete(`/api/cliente/cartao/${clienteId}/${id}`);
             setCards((prev) => prev.filter((card) => card.id !== id));  // Atualiza o estado após excluir o cartão
         } catch (error) {
             console.error("Erro ao excluir o cartão: ", error);
@@ -65,13 +65,14 @@ const CardManagementScreen = () => {
                         Adicionar Cartão de Crédito
                     </Button>
 
-                    <Button
+                    {/* <Button
                         size="$4"
                         onPress={() => router.push('/addDebitUser')}
                         theme="green"
                     >
                         Adicionar Cartão de Débito
-                    </Button>
+                    </Button> */}
+
                 </Stack>
 
                 <YStack mt="$6" space="$4">
