@@ -129,6 +129,33 @@ function RootLayoutNav() {
         />
 
         <Stack.Screen
+          name="EditProfile"
+          options={{
+            title: 'EditProfile',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="InfoCar"
+          options={{
+            title: 'InfoCar',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
+          name="EditCar"
+          options={{
+            title: 'EditCar',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade', 
+          }}
+        />
+
+        <Stack.Screen
           name="Login Driver"
           options={{
             title: 'Login-driver',

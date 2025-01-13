@@ -16,7 +16,7 @@ export default function RegisterDriver(){
 
     const apiRegisterUser = async () => {
       const registerRequestData = {
-          nome: name,
+          name: name,
           numeroTelefone: numeroTelefone,
           cpf: cpf,
           email: email,
@@ -24,7 +24,7 @@ export default function RegisterDriver(){
       }
       console.log(registerRequestData)
       try{
-        const response = await axios.post('https://2856-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+        const response = await axios.post('https://d8ab-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
 
         if (response.status === 200 || response.status === 201) {
           console.log('Sucesso:', response.data);
@@ -137,5 +137,3 @@ const styles = StyleSheet.create({
 
 
   
-
-

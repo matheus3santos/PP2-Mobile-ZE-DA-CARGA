@@ -30,7 +30,7 @@ export default function RegisterDriverAddress(){
           }
           console.log(registerRequestData)
           try{
-            const response = await axios.post('https://2856-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+            const response = await axios.post('https://d8ab-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
 
             if (response.status === 200 || response.status === 201) {
               console.log('Sucesso:', response.data);
@@ -184,5 +184,3 @@ export default function RegisterDriverAddress(){
 
 
   
-
-

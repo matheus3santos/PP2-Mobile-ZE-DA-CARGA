@@ -25,13 +25,22 @@ export default function RegisterDriverCNH(){
         }
         console.log(registerRequestData)
         try{
-            await axios.post("https://2856-200-238-97-165.ngrok-free.app/api/motorista", registerRequestData).then((response)=>{
-                console.log(response)
-                alert("Informações salvas com sucesso")
-            })
+          const response = await axios.post('https://d8ab-200-238-97-165.ngrok-free.app/api/motorista', registerRequestData);
+
+          if (response.status === 200 || response.status === 201) {
+            console.log('Sucesso:', response.data);
+            alert('Dados enviados com sucesso!');
+          } else {
+            console.error('Erro na resposta:', response.status, response.statusText);
+          }
         }
-        catch (e) {
-            alert(e)
+        catch (error) {
+          console.error('Erro na requisição:', error.response || error.message);
+          alert('Houve um erro ao enviar os dados.');
+            //await axiosInstance.post("/api/motorista", registerRequestData).then((response)=>{
+                //console.log(response)
+                //alert("Informações salvas com sucesso")
+            //})
         }
     }
 
@@ -43,7 +52,7 @@ export default function RegisterDriverCNH(){
       <Text style={styles.label}>Renavam</Text>
       <TextInput
         mode="outlined"
-        placeholder="Digite a rua"
+        placeholder="Digite o renavam"
         value={renavam}
         onChangeText={setRenavam}
         style={styles.input}
