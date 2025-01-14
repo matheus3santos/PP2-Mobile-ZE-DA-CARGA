@@ -29,7 +29,7 @@ export default function Login() {
       <View style={styles.imageContainer}>
         <Image
           style={[styles.image, { resizeMode: 'stretch' }]}
-          source={require('./public/images/logo.png')}
+          source={require('../public/images/logo.png')}
         />
       </View>
       <View style={styles.textContainer}>
@@ -67,7 +67,7 @@ export default function Login() {
           onPress={handleGoogleLogin}
           icon={
             <Image
-              source={require('./public/images/google-icon.png')}
+              source={require('../public/images/google-icon.png')}
               style={{ width: 24, height: 24, marginRight: 8 }}
             />
           }

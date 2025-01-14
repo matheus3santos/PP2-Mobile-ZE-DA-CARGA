@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
-import BottomBar from 'app/components/BottomBar';
+import BottomBar from 'components/BottomBar';
 
 
 const travelHistory = [

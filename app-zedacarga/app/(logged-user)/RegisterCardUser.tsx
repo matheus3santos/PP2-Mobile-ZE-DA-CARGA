@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { Button, ListItem, Stack, Text, YStack } from 'tamagui';
-import BottomBarUser from '../components/BottomBarUser';
+import BottomBarUser from '../../components/BottomBarUser';
 import { View } from 'react-native';
 import axiosInstance from '../config/axiosUrlConfig';  // Aqui você importará a configuração do Axios
 

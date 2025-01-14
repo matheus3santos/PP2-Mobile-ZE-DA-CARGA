@@ -8,7 +8,7 @@ export default function Index() {
       <View style={styles.imageContainer}>
         <Image
           style={[styles.image, { resizeMode: "stretch" }]}
-          source={require('./public/images/whitebox.png')}
+          source={require('../public/images/whitebox.png')}
         />
       </View>
       <H6 style={styles.textDescription}>

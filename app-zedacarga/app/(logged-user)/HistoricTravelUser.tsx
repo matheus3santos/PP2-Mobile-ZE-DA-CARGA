@@ -1,7 +1,7 @@
 import { H6, Text, Button } from 'tamagui';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import BottomBarUser from 'app/components/BottomBarUser';
+import BottomBarUser from 'components/BottomBarUser';
 
 export default function HistoricTravelUser() {
   const mockTravelData = [

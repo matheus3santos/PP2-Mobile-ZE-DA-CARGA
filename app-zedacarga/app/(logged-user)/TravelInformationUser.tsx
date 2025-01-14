@@ -1,6 +1,6 @@
 import { H4, H5, H6, Button, Text } from "tamagui";
 import { View, ScrollView, StyleSheet } from "react-native";
-import BottomBarUser from "app/components/BottomBarUser";
+import BottomBarUser from "components/BottomBarUser";
 import { router } from 'expo-router';
 
 

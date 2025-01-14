@@ -3,7 +3,7 @@ import { Plus, LogOut } from '@tamagui/lucide-icons'
 
 import { Image, TouchableOpacity, ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import BottomBarUser from "app/components/BottomBarUser";
+import BottomBarUser from "components/BottomBarUser";
 // import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 // import axiosInstance from "app/config/axiosUrlConfig";

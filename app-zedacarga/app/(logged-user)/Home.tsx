@@ -1,6 +1,6 @@
 import { Button, Input } from 'tamagui';
 import { View, StyleSheet, Modal, Text, TouchableOpacity, Dimensions } from 'react-native';
-import BottomBarUser from 'app/components/BottomBarUser';
+import BottomBarUser from 'components/BottomBarUser';
 import MapView, { Marker, PROVIDER_GOOGLE  } from 'react-native-maps';
 import { useState } from 'react';
 

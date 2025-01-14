@@ -138,7 +138,7 @@ export default function RegisterUser() {
         <ScrollView className='h-full bg-white'>
             <View className='flex justify-center items-center mt-8'>
                 <Image
-                    source={require('./public/images/logo.png')}
+                    source={require('../public/images/logo.png')}
                     style={{
                         marginTop:30,
                         width: 100,

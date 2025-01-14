@@ -1,8 +1,8 @@
 import { H6 } from 'tamagui';
 import { View, StyleSheet } from 'react-native';
-import BottomBar from 'app/components/BottomBar';
-import NearbyFrete from 'app/components/NearbyFrete';
-import BottomActiveFrete from 'app/components/BottomActiveFrete';
+import BottomBar from 'components/BottomBar';
+import NearbyFrete from 'components/NearbyFrete';
+import BottomActiveFrete from 'components/BottomActiveFrete';
 
 
 export default function Index() {
