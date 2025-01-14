@@ -1,7 +1,7 @@
 import { Button, Input } from 'tamagui';
 import { View, StyleSheet, Modal, Text, TouchableOpacity, Dimensions } from 'react-native';
 import BottomBarUser from 'app/components/BottomBarUser';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE  } from 'react-native-maps';
 import { useState } from 'react';
 
 const { height } = Dimensions.get('window');
@@ -21,7 +21,9 @@ export default function Home() {
     <View style={styles.container}>
       {/* Mapa ao fundo */}
 
-      {/* <MapView
+      <MapView
+        provider={PROVIDER_GOOGLE} // Use o Google Maps
+
         style={styles.map}
         initialRegion={{
           latitude: -23.55052,
@@ -37,7 +39,7 @@ export default function Home() {
           }}
           title="Meu Local"
         />
-      </MapView> */}
+      </MapView>
 
 
       {/* Botão para definir destino */}

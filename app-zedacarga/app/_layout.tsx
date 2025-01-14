@@ -92,23 +92,23 @@ function RootLayoutNav() {
           }}
         /> */}
 
-        <Stack.Screen
+        {/* <Stack.Screen
           name="RegisterDriverAddress"
           options={{
             title: 'Register-driver-address',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade',
           }}
-        />
+        /> */}
 
-        <Stack.Screen
+        {/* <Stack.Screen
           name="RegisterDriverCNH"
           options={{
             title: 'Register-driver-address',
             headerShown: false, // Opcional, oculta o cabeçalho
             animation: 'fade',
           }}
-        />
+        /> */}
 
         <Stack.Screen
           name="Login-driver"
