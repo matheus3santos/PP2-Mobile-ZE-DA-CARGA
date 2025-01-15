@@ -1,108 +1,126 @@
-import { Button, Input } from 'tamagui';
-import { View, StyleSheet, Modal, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Button } from 'tamagui';
+import { View, StyleSheet, Modal, Dimensions } from 'react-native';
 import BottomBarUser from 'components/BottomBarUser';
-import MapView, { Marker, PROVIDER_GOOGLE  } from 'react-native-maps';
-import { useState } from 'react';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import { useEffect, useRef, useState } from 'react';
+import * as Location from 'expo-location';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import 'react-native-get-random-values';
+import Geolocation from 'react-native-geolocation-service';
+
+
+const randomArray = new Uint32Array(5);
+crypto.getRandomValues(randomArray);
 
 const { height } = Dimensions.get('window');
 
 export default function Home() {
-  const [isLocationModalVisible, setLocationModalVisible] = useState(false);
-  const [isRideModalVisible, setRideModalVisible] = useState(false);
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const mapRef = useRef<MapView>(null);
 
-  const handleConfirmLocation = () => {
-    setLocationModalVisible(false);
-    setRideModalVisible(true); // Abre o modal de modalidade da corrida
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync();
+        setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      }
+    })();
+  }, []);
+
+  const handleCenterUserLocation = () => {
+    if (userLocation) {
+      mapRef.current?.animateToRegion({
+        ...userLocation,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
   };
+
+  const handleSelectDestination = (data, details) => {
+    if (details?.geometry?.location) {
+      setDestination({
+        latitude: details.geometry.location.lat,
+        longitude: details.geometry.location.lng,
+      });
+      setModalVisible(false);
+    } else {
+      console.error('Detalhes ou localização não disponíveis:', details);
+    }
+  };
+
+
 
   return (
     <View style={styles.container}>
-      {/* Mapa ao fundo */}
-
+      {/* Mapa */}
       <MapView
-        provider={PROVIDER_GOOGLE} // Use o Google Maps
-
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
-          latitude: -23.55052,
-          longitude: -46.633308,
+          latitude: userLocation?.latitude || -23.55052,
+          longitude: userLocation?.longitude || -46.633308,
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
       >
-        <Marker
-          coordinate={{
-            latitude: -23.55052,
-            longitude: -46.633308,
-          }}
-          title="Meu Local"
-        />
+        {userLocation && (
+          <Marker coordinate={userLocation} title="Minha Localização" />
+        )}
+        {destination && (
+          <>
+            <Marker coordinate={destination} title="Destino" />
+            {userLocation && destination && (
+              <Polyline
+                coordinates={[userLocation, destination]}
+                strokeColor="#007AFF"
+                strokeWidth={4}
+              />
+            )}
+
+          </>
+        )}
       </MapView>
 
-
-      {/* Botão para definir destino */}
+      {/* Botão para centralizar localização */}
       <View style={styles.content}>
-        <Button
-          theme="blue"
-          style={styles.button}
-          onPress={() => setLocationModalVisible(true)}
-        >
-          Definir destino
+        <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
+          Centralizar Localização
+        </Button>
+        <Button theme="blue" onPress={() => setModalVisible(true)} style={styles.button}>
+          Definir Destino
         </Button>
       </View>
 
-      {/* BottomBar para navegação */}
+      {/* BottomBar */}
       <BottomBarUser screen="HomeUser" />
 
-      {/* Modal para escolher local de origem e destino */}
-      <Modal visible={isLocationModalVisible} transparent={true} animationType="slide">
-        <View style={styles.halfModal}>
-          <Text style={styles.modalTitle}>Escolha sua rota</Text>
-          <Input
-            placeholder="Local de origem"
-            style={styles.input}
-            value={origin}
-            onChangeText={setOrigin}
+      {/* Modal para selecionar destino */}
+      <Modal visible={isModalVisible} transparent={true} animationType="slide">
+        <View style={styles.modal}>
+          <GooglePlacesAutocomplete
+            placeholder="Digite o destino"
+            onPress={handleSelectDestination}
+            query={{
+              key: 'AIzaSyDwghEhGK_hqRcjs4YNRs7BBsHXTXJPfWw',
+              language: 'pt-BR',
+            }}
+            fetchDetails={true} // Garante que os detalhes completos sejam retornados
+            styles={{
+              textInput: styles.input,
+            }}
           />
-          <Input
-            placeholder="Local de destino"
-            style={styles.input}
-            value={destination}
-            onChangeText={setDestination}
-          />
-          <Button theme="green" onPress={handleConfirmLocation} style={styles.button}>
-            Confirmar
+          {/* Botão para fechar o modal */}
+          <Button theme="red" onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+            Cancelar
           </Button>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setLocationModalVisible(false)}
-          >
-            <Text style={styles.closeButtonText}>Fechar</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      {/* Modal para escolher a modalidade da corrida */}
-      <Modal visible={isRideModalVisible} transparent={true} animationType="slide">
-        <View style={styles.halfModal}>
-          <Text style={styles.modalTitle}>Escolha a modalidade</Text>
-          <TouchableOpacity style={styles.option}>
-            <Text style={styles.optionText}>Econômica</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.option}>
-            <Text style={styles.optionText}>Conforto</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.option}>
-            <Text style={styles.optionText}>Premium</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setRideModalVisible(false)}
-          >
-            <Text style={styles.closeButtonText}>Fechar</Text>
-          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -116,62 +134,35 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
+  cancelButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignSelf: 'center',
+    backgroundColor: '#FF3B30', // Vermelho
+  },
+
   content: {
     position: 'absolute',
     bottom: 100,
     alignSelf: 'center',
   },
   button: {
-    width: '90%',
     marginVertical: 8,
+    width: 200,
   },
-  halfModal: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    height: height * 0.5, // Metade da tela
+  modal: {
+    flex: 1,
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     padding: 16,
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
   },
   input: {
-    width: '90%',
-    marginBottom: 16,
-    borderWidth: 1,
     borderColor: '#ddd',
+    borderWidth: 1,
     padding: 8,
     borderRadius: 8,
-  },
-  option: {
-    width: '90%',
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    marginVertical: 8,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  optionText: {
-    fontSize: 16,
-  },
-  closeButton: {
-    marginTop: 16,
-    padding: 8,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: 'red',
+    marginVertical: 10,
   },
 });
