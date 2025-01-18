@@ -49,7 +49,7 @@ export default function Profile() {
                 <View style={{ alignItems: 'center' }}>
                     <Button
                         onPress={() => {
-                            // router.push('MyAddress')
+                        router.push('/EditProfile')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -58,7 +58,7 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                            // router.push('PaymentScreen')
+                        router.push('/InfoCar')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -67,16 +67,16 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                            // router.push('NotificationScreen')
+                        router.push('/EditCar')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
                     >
-                        Carteira Digital
+                        Editar Veiculo
                     </Button>
                     <Button
                         onPress={() => {
-                             router.push('/TravelHistory')
+                            router.push('/TravelHistory')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -85,7 +85,7 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                        router.push('/')
+                            router.push('/')
                         }}
                         style={{ backgroundColor: 'red', color: 'white', width: 240, marginBottom: 10 }}
                         icon={LogOut}
