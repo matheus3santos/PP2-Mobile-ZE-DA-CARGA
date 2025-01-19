@@ -1,23 +1,25 @@
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from 'tamagui';
-import { View, StyleSheet, Modal, Dimensions } from 'react-native';
-import BottomBarUser from 'components/BottomBarUser';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import { useEffect, useRef, useState } from 'react';
-import * as Location from 'expo-location';
+import { View, StyleSheet, Modal, Text, Dimensions } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import * as Location from 'expo-location';
+import BottomBarUser from 'components/BottomBarUser';
+import { GOOGLE_MAPS_API_KEY } from '../../env';
 import 'react-native-get-random-values';
-import Geolocation from 'react-native-geolocation-service';
-
-
-const randomArray = new Uint32Array(5);
-crypto.getRandomValues(randomArray);
 
 const { height } = Dimensions.get('window');
 
 export default function Home() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [origin, setOrigin] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [distance, setDistance] = useState<number>(0);
+  const [price, setPrice] = useState<number>(0);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isPaymentModalVisible, setPaymentModalVisible] = useState(false);
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -26,6 +28,10 @@ export default function Home() {
       if (status === 'granted') {
         const location = await Location.getCurrentPositionAsync();
         setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+        setOrigin({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
@@ -50,16 +56,33 @@ export default function Home() {
         longitude: details.geometry.location.lng,
       });
       setModalVisible(false);
-    } else {
-      console.error('Detalhes ou localização não disponíveis:', details);
+      setPaymentModalVisible(true);
     }
   };
 
+  const calculatePrice = (distance: number) => {
+    const pricePerKm = 2.5; // Tarifa por km
+    setPrice(distance * pricePerKm);
+  };
 
+  const handleRequestRide = () => {
+    if (origin && destination && paymentMethod) {
+      // Enviar os dados para o back-end ou processar a lógica localmente
+      console.log('Solicitação de viagem:', {
+        origem: origin,
+        destino: destination,
+        distância: distance,
+        preço: price,
+        métodoPagamento: paymentMethod,
+      });
+      alert('Viagem solicitada com sucesso!');
+    } else {
+      alert('Preencha todos os campos antes de solicitar a viagem.');
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Mapa */}
       <MapView
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
@@ -70,26 +93,35 @@ export default function Home() {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
+        onPress={(e) => {
+          // Permite ao usuário escolher a origem no mapa
+          if (!origin) {
+            setOrigin(e.nativeEvent.coordinate);
+          }
+        }}
       >
-        {userLocation && (
-          <Marker coordinate={userLocation} title="Minha Localização" />
-        )}
-        {destination && (
-          <>
-            <Marker coordinate={destination} title="Destino" />
-            {userLocation && destination && (
-              <Polyline
-                coordinates={[userLocation, destination]}
-                strokeColor="#007AFF"
-                strokeWidth={4}
-              />
-            )}
-
-          </>
+        {origin && <Marker coordinate={origin} title="Origem" />}
+        {destination && <Marker coordinate={destination} title="Destino" />}
+        {origin && destination && (
+          <MapViewDirections
+            origin={origin}
+            destination={destination}
+            apikey={GOOGLE_MAPS_API_KEY}
+            strokeWidth={4}
+            strokeColor="#007AFF"
+            mode="DRIVING"
+            onReady={(result) => {
+              setDistance(result.distance); // Distância em km
+              calculatePrice(result.distance);
+              mapRef.current?.fitToCoordinates(result.coordinates, {
+                edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+              });
+            }}
+            onError={(errorMessage) => console.error('Erro ao calcular a rota:', errorMessage)}
+          />
         )}
       </MapView>
 
-      {/* Botão para centralizar localização */}
       <View style={styles.content}>
         <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
           Centralizar Localização
@@ -99,25 +131,38 @@ export default function Home() {
         </Button>
       </View>
 
-      {/* BottomBar */}
       <BottomBarUser screen="HomeUser" />
 
-      {/* Modal para selecionar destino */}
+      {/* Modal de preço e pagamento */}
+      <Modal visible={isPaymentModalVisible} transparent={true} animationType="slide">
+        <View style={styles.paymentModal}>
+          <Text>Origem: {origin ? `Lat: ${origin.latitude}, Lng: ${origin.longitude}` : 'Não definido'}</Text>
+          <Text>Destino: {destination ? `Lat: ${destination.latitude}, Lng: ${destination.longitude}` : 'Não definido'}</Text>
+          <Text>Distância: {distance.toFixed(2)} km</Text>
+          <Text>Preço: R$ {price.toFixed(2)}</Text>
+          <Button
+            theme="blue"
+            onPress={() => setPaymentMethod('Cartão de Crédito')}
+            style={[styles.button, paymentMethod === 'Cartão de Crédito' && styles.selectedButton]}
+          >
+            Pagamento: Cartão de Crédito
+          </Button>
+          <Button theme="green" onPress={handleRequestRide} style={styles.button}>
+            Solicitar Viagem
+          </Button>
+        </View>
+      </Modal>
+
+      {/* Modal para selecionar o destino */}
       <Modal visible={isModalVisible} transparent={true} animationType="slide">
         <View style={styles.modal}>
           <GooglePlacesAutocomplete
             placeholder="Digite o destino"
             onPress={handleSelectDestination}
-            query={{
-              key: 'AIzaSyDwghEhGK_hqRcjs4YNRs7BBsHXTXJPfWw',
-              language: 'pt-BR',
-            }}
-            fetchDetails={true} // Garante que os detalhes completos sejam retornados
-            styles={{
-              textInput: styles.input,
-            }}
+            query={{ key: 'AIzaSyDwghEhGK_hqRcjs4YNRs7BBsHXTXJPfWw', language: 'pt-BR' }}
+            fetchDetails={true}
+            styles={{ textInput: styles.input }}
           />
-          {/* Botão para fechar o modal */}
           <Button theme="red" onPress={() => setModalVisible(false)} style={styles.cancelButton}>
             Cancelar
           </Button>
@@ -128,41 +173,21 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  cancelButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignSelf: 'center',
-    backgroundColor: '#FF3B30', // Vermelho
-  },
-
-  content: {
+  container: { flex: 1 },
+  map: { ...StyleSheet.absoluteFillObject },
+  content: { position: 'absolute', bottom: 150, alignSelf: 'center' },
+  button: { marginVertical: 8, width: 200 },
+  selectedButton: { backgroundColor: '#007AFF' },
+  modal: { flex: 1, backgroundColor: 'white', padding: 16, justifyContent: 'center' },
+  paymentModal: {
     position: 'absolute',
     bottom: 100,
-    alignSelf: 'center',
-  },
-  button: {
-    marginVertical: 8,
-    width: 200,
-  },
-  modal: {
-    flex: 1,
+    left: 20,
+    right: 20,
     backgroundColor: 'white',
-    padding: 16,
-    justifyContent: 'center',
+    padding: 20,
+    borderRadius: 10,
   },
-  input: {
-    borderColor: '#ddd',
-    borderWidth: 1,
-    padding: 8,
-    borderRadius: 8,
-    marginVertical: 10,
-  },
+  input: { borderColor: '#ddd', borderWidth: 1, padding: 8, borderRadius: 8, marginVertical: 10 },
+  cancelButton: { marginTop: 16, paddingVertical: 12, paddingHorizontal: 24, alignSelf: 'center', backgroundColor: '#FF3B30' },
 });
