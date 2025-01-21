@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import { Button, ListItem, Stack, Text, YStack } from 'tamagui';
 import BottomBarUser from '../../components/BottomBarUser';
 import { View } from 'react-native';
-import axiosInstance from '../config/axiosUrlConfig';  // Aqui você importará a configuração do Axios
+import axiosInstance from '../config/axiosUrlConfig';
+import * as SecureStore from 'expo-secure-store';
 
-// Defina a interface do cartão
 interface Card {
     id: number;
     tipoCartao: string;
@@ -14,42 +14,55 @@ interface Card {
 
 const CardManagementScreen = () => {
     const router = useRouter();
-    const [cards, setCards] = useState<Card[]>([]);  // Use o tipo Card aqui
-    const clienteId = "2";  // ID fixo do cliente para fins de teste
-
-    // Função para buscar os cartões cadastrados na API
-    const fetchCards = async () => {
-        try {
-            const response = await axiosInstance.get(`/api/cliente/cartao/${clienteId}`);
-            console.log('Response:', response.data);  // Log para verificar os dados recebidos
-
-            if (Array.isArray(response.data)) {
-                // Caso seja um array
-                setCards(response.data);
-            } else if (typeof response.data === 'object' && response.data !== null) {
-                // Caso seja um único objeto
-                setCards([response.data]); // Coloca o objeto em um array
-            } else {
-                console.warn("Formato inesperado da resposta", response.data);
-                setCards([]);
-            }
-        } catch (error) {
-            console.error("Erro ao buscar os cartões: ", error);
-        }
-    };
-
+    const [cards, setCards] = useState<Card[]>([]);
+    const [clienteId, setClienteId] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchCards();  // Chama a função quando a tela for carregada
+        const fetchClientIdAndCards = async () => {
+            const email = await SecureStore.getItemAsync('email');
+            if (!email) {
+                router.push('/'); // Redireciona se não estiver logado
+                return;
+            }
+            try {
+                const response = await axiosInstance.get('/api/cliente');
+                const clienteData = response.data.find((cliente: any) => cliente.email === email);
+                setClienteId(clienteData?.id || null);
+
+                if (clienteData?.id) {
+                    const cardsResponse = await axiosInstance.get(`/api/cliente/cartoes/${clienteData.id}`);
+                    console.log("Cartões encontrados:", cardsResponse.data);
+
+                    // Verifica se é um objeto ou array e adapta
+                    if (Array.isArray(cardsResponse.data)) {
+                        setCards(cardsResponse.data);
+                    } else if (cardsResponse.data && typeof cardsResponse.data === 'object') {
+                        setCards([cardsResponse.data]); // Transforma o objeto em array
+                    } else {
+                        setCards([]); // Caso de resposta inesperada
+                    }
+                }
+            } catch (e) {
+                console.error('Erro ao buscar dados do cliente e cartões:', e);
+            }
+        };
+
+        fetchClientIdAndCards();
     }, []);
 
+
+
     const handleDeleteCard = async (id: number) => {
+        if (!clienteId) {
+            alert('Cliente não encontrado. Faça login novamente.');
+            return;
+        }
+
         try {
-            // Deleta o cartão passando o ID do cliente e o ID do cartão
-            await axiosInstance.delete(`/api/cliente/cartao/${clienteId}/${id}`);
-            setCards((prev) => prev.filter((card) => card.id !== id));  // Atualiza o estado após excluir o cartão
-        } catch (error) {
-            console.error("Erro ao excluir o cartão: ", error);
+            await axiosInstance.delete(`/api/cliente/cartao/${id}`);
+            setCards((prev) => prev.filter((card) => card.id !== id));
+        } catch (e) {
+            console.error('Erro ao excluir o cartão:', e);
         }
     };
 
@@ -68,18 +81,9 @@ const CardManagementScreen = () => {
                     >
                         Adicionar Cartão de Crédito
                     </Button>
-
-                    {/* <Button
-                        size="$4"
-                        onPress={() => router.push('/addDebitUser')}
-                        theme="green"
-                    >
-                        Adicionar Cartão de Débito
-                    </Button> */}
-
                 </Stack>
 
-                <YStack mt="$6" space="$4">
+                <YStack mt="$6" space="$6"> {/* Aumente o valor de 'space' para criar mais espaçamento */}
                     <Text fontSize="$4" fontWeight="600">
                         Cartões Cadastrados
                     </Text>
@@ -90,8 +94,8 @@ const CardManagementScreen = () => {
                                 key={card.id}
                                 bg="$backgroundSoft"
                                 borderRadius="$3"
-                                space="$4"
-                                onPress={() => console.log(`Visualizando cartão ${card.id}`)}
+                                padding="$4"
+                                onPress={() => (`Visualizando cartão ${card.id}`)}
                             >
                                 <Text>
                                     {card.tipoCartao} - Final {card.numeroCartao.slice(-4)}
