@@ -2,26 +2,41 @@ import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
 import { router } from 'expo-router';
-
-
+import * as SecureStore from 'expo-secure-store';
+import axiosInstance from './config/axiosUrlConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    if (email === 'teste@mail.com' && senha === '123456') {
-      setError('');
-      alert('Login realizado com sucesso!');
-      router.push('/(logged-user)/Home');
-    } else {
-      setError('E-mail ou senha inválidos.');
-    }
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex para validar formato de email
+    return regex.test(email);
   };
 
-  const handleGoogleLogin = () => {
-    alert('Login com Google mockado!');
+  const handleGoogleLogin = async () => {
+    if (!validateEmail(email)) {
+      setError('Por favor, insira um email válido.');
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.get('/api/cliente');
+      const cliente = response.data.find((cliente: any) => cliente.email === email);
+
+      if (cliente) {
+        // Armazena os dados e o token no SecureStore
+        await SecureStore.setItemAsync('token', `secure_token_${cliente.id}`);
+        await SecureStore.setItemAsync('email', cliente.email);
+
+        router.push('/(logged-user)/Home'); // Redireciona para o perfil
+      } else {
+        setError('E-mail não encontrado. Verifique ou crie uma conta.');
+      }
+    } catch (e) {
+      console.error('Erro ao verificar e-mail:', e);
+      setError('Ocorreu um erro ao verificar o e-mail. Tente novamente.');
+    }
   };
 
   return (
@@ -46,23 +61,8 @@ export default function Login() {
             placeholder="Digite seu e-mail"
           />
         </View>
-        <View style={[styles.inputGroup, { marginTop: 16, marginBottom: 18 }]}>
-          <H6>Senha</H6>
-          <Input
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry
-            className="w-80 bg-white text-black rounded shadow hover:border-orange-600"
-            placeholder="Digite sua senha"
-          />
-        </View>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Button onPress={handleLogin} className="w-60 bg-orange-500 rounded-3xl text-white">
-          Entrar
-        </Button>
-
-        <H6 style={{ marginVertical: 16 }}>Ou</H6>
         <Button
           onPress={handleGoogleLogin}
           icon={
@@ -71,7 +71,7 @@ export default function Login() {
               style={{ width: 24, height: 24, marginRight: 8 }}
             />
           }
-          className="bg-orange-500 text-white"
+          className="bg-orange-500 text-white mt-4"
         >
           Logar com o Google
         </Button>
@@ -83,10 +83,13 @@ export default function Login() {
         <TouchableOpacity>
           <H6
             style={styles.forgotPasswordText}
-            onPress={() => { router.push('/RegisterUser') }}>Criar nova conta</H6>
+            onPress={() => {
+              router.push('/RegisterUser');
+            }}
+          >
+            Criar nova conta
+          </H6>
         </TouchableOpacity>
-
-
       </View>
     </View>
   );

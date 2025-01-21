@@ -15,25 +15,29 @@ interface Card {
 const CardManagementScreen = () => {
     const router = useRouter();
     const [cards, setCards] = useState<Card[]>([]);  // Use o tipo Card aqui
-    const clienteId = "1";  // ID fixo do cliente para fins de teste
+    const clienteId = "2";  // ID fixo do cliente para fins de teste
 
     // Função para buscar os cartões cadastrados na API
     const fetchCards = async () => {
         try {
-            const response = await axiosInstance.get(`/api/cliente/cartoes/${clienteId}`);
-            console.log('Response:', response);  // Adicionei o log para verificar a resposta
+            const response = await axiosInstance.get(`/api/cliente/cartao/${clienteId}`);
+            console.log('Response:', response.data);  // Log para verificar os dados recebidos
 
-            // Verifique se a resposta é um array
             if (Array.isArray(response.data)) {
-                setCards(response.data);  // Atualiza o estado com os cartões recebidos
+                // Caso seja um array
+                setCards(response.data);
+            } else if (typeof response.data === 'object' && response.data !== null) {
+                // Caso seja um único objeto
+                setCards([response.data]); // Coloca o objeto em um array
             } else {
-                console.warn("Os dados recebidos não são um array", response.data);
-                setCards([]);  // Garante que o estado seja um array vazio caso a resposta não seja um array
+                console.warn("Formato inesperado da resposta", response.data);
+                setCards([]);
             }
         } catch (error) {
             console.error("Erro ao buscar os cartões: ", error);
         }
     };
+
 
     useEffect(() => {
         fetchCards();  // Chama a função quando a tela for carregada

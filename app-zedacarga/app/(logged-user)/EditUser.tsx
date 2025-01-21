@@ -1,81 +1,161 @@
 import { H6, Input, Button } from 'tamagui';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
-import { router } from "expo-router";
+import { View, StyleSheet, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+import axiosInstance from '../config/axiosUrlConfig';
+import { TextInputMask } from 'react-native-masked-text';
 
 
 export default function EditProfileUser() {
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [cpf, setCpf] = useState('');
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+    // Definindo os estados
+    const [userId, setUserId] = useState<string | null>(null);
+    const [nome, setNome] = useState<string>('');
+    const [telefone, setTelefone] = useState<string>('');
+    const [cpf, setCpf] = useState<string>('');
+    const [cep, setCep] = useState<string>('');
+    const [residenciaNumero, setResidenciaNumero] = useState<string>('');
+    const [foto, setFoto] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [dataNascimento, setDataNascimento] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
 
-    const handleImagePick = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+    // Carregar dados do perfil
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            const token = await SecureStore.getItemAsync('token');
+            const email = await SecureStore.getItemAsync('email');
+            // Converte uma data no formato YYYY-MM-DD para DD/MM/YYYY
+            const formatDate = (date: string): string => {
+                if (!date) return '';
+                const [year, month, day] = date.split('-');
+                return `${day}/${month}/${year}`;
+            };
 
-        if (!result.canceled) {
-            setProfileImage(result.assets[0].uri);
+
+            if (!token || !email) {
+                router.push('/'); // Redireciona se não estiver logado
+                return;
+            }
+
+            try {
+                const response = await axiosInstance.get('/api/cliente');
+                const clienteData = response.data.find((cliente: any) => cliente.email === email);
+
+                if (clienteData) {
+                    setUserId(clienteData.id);
+                    setNome(clienteData.nome);
+                    setTelefone(clienteData.telefone);
+                    setCpf(clienteData.cpf);
+                    setCep(clienteData.cep);
+                    setResidenciaNumero(clienteData.residenciaNumero);
+                    setFoto(clienteData.foto);
+                    setDataNascimento(formatDate(clienteData.dataNascimento));
+                    setEmail(clienteData.email);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados do perfil:', error);
+                Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, []);
+
+    // Atualizar os dados do perfil
+    const handleSave = async () => {
+        if (!userId) {
+            Alert.alert('Erro', 'Usuário não identificado.');
+            return;
+        }
+
+        try {
+            const token = await SecureStore.getItemAsync('token');
+            if (!token) {
+                Alert.alert('Erro', 'Token não encontrado.');
+                return;
+            }
+
+            // O payload já considera a data no formato DD/MM/YYYY
+            const payload = {
+                nome: nome.trim(),
+                telefone: telefone.trim(),
+                cpf: cpf.trim(),
+                cep: cep.trim(),
+                residenciaNumero: residenciaNumero.trim(),
+                foto: foto || '',
+                dataNascimento: dataNascimento, // No formato DD/MM/YYYY
+                email: email,
+            };
+
+            console.log('Payload enviado:', payload);
+
+            const response = await axiosInstance.put(`/api/cliente/${userId}`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            console.log('Resposta da API:', response.data);
+
+            Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
+            router.push('/(logged-user)/ProfileUser');
+        } catch (error: any) {
+            console.error('Erro ao atualizar os dados:', error);
+
+            if (error.response) {
+                console.error('Detalhes do erro:', error.response.data);
+                Alert.alert('Erro', `Não foi possível salvar os dados: ${error.response.data.message || 'Erro desconhecido.'}`);
+            } else {
+                Alert.alert('Erro', 'Ocorreu um erro inesperado.');
+            }
         }
     };
 
-    const handleSave = () => {
-        alert('Dados salvos com sucesso!');
-    };
+
+    if (loading) {
+        return <H6>Carregando...</H6>;
+    }
 
     return (
         <View style={styles.container}>
             <H6 style={styles.title}>Editar Perfil</H6>
-
-            {/* Área da Foto de Perfil */}
-            <View style={styles.profileImageContainer}>
-                <TouchableOpacity onPress={handleImagePick}>
-                    {profileImage ? (
-                        <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                    ) : (
-                        <View style={styles.placeholder}>
-                            <H6 style={styles.placeholderText}>Adicionar Foto</H6>
-                        </View>
-                    )}
-                </TouchableOpacity>
-            </View>
-
-            {/* Campos para editar informações */}
-            <Input
-                placeholder="Nome"
-                value={name}
-                onChangeText={setName}
-                style={styles.input}
-            />
+            <Input placeholder="Nome" value={nome} onChangeText={setNome} style={styles.input} />
             <Input
                 placeholder="Número de Telefone"
-                value={phone}
-                onChangeText={setPhone}
+                value={telefone}
+                onChangeText={setTelefone}
                 keyboardType="phone-pad"
                 style={styles.input}
             />
+            <Input placeholder="CPF" value={cpf} onChangeText={setCpf} keyboardType="numeric" style={styles.input} />
+            <Input placeholder="CEP" value={cep} onChangeText={setCep} keyboardType="numeric" style={styles.input} />
             <Input
-                placeholder="CPF"
-                value={cpf}
-                onChangeText={setCpf}
+                placeholder="Número da Residência"
+                value={residenciaNumero}
+                onChangeText={setResidenciaNumero}
                 keyboardType="numeric"
                 style={styles.input}
             />
 
-            {/* Botão de Salvar */}
+            <Input
+                placeholder="Data de Nascimento"
+                value={dataNascimento} // A data já estará no formato DD/MM/YYYY
+                onChangeText={setDataNascimento} // Atualiza diretamente no formato DD/MM/YYYY
+                keyboardType="numeric"
+                style={styles.input}
+            />
+
+            <Input
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+            />
             <Button theme="blue" onPress={handleSave} style={styles.saveButton}>
                 Salvar
             </Button>
-
-            {/* Botão de Cancelar */}
-            <Button theme="blue" onPress={() => {
-                router.push('/(logged-user)/ProfileUser')
-            }} style={styles.saveButton}>
+            <Button theme="blue" onPress={() => router.push('/(logged-user)/ProfileUser')} style={styles.saveButton}>
                 Cancelar
             </Button>
         </View>
@@ -94,33 +174,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
-    profileImageContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
-    placeholder: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: '#e0e0e0',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    placeholderText: {
-        fontSize: 14,
-        color: '#888',
-    },
     input: {
         marginBottom: 16,
         backgroundColor: '#f9f9f9',
     },
     saveButton: {
         marginTop: 24,
+    },
+    disabledInput: {
+        backgroundColor: '#e0e0e0', // Cinza claro para indicar que é não editável
     },
 });

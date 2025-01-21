@@ -91,10 +91,7 @@ export default function RegisterDriver() {
     <YStack space={4} padding={16}>
 
       {/* Botão de Retorno */}
-      <View style={{ marginBottom: 16 }}>
-        <Button
-          onPress={() => { router.push('/Login-driver') }}>Voltar</Button>
-      </View>
+
       {currentPage === 1 && (
         <>
           <Input
@@ -209,12 +206,22 @@ export default function RegisterDriver() {
           </Button>
 
         ) : (
-          <Button onPress={handleNext}>
+          <Button
+            theme="green"
+            onPress={handleNext}>
             Próximo
           </Button>
 
         )}
       </View>
+
+      <View style={{ marginBottom: 16, marginTop: 16 }}>
+        <Button theme="red"
+
+          onPress={() => { router.push('/Login-driver') }}>Cancelar
+        </Button>
+      </View>
+
     </YStack>
   );
 };

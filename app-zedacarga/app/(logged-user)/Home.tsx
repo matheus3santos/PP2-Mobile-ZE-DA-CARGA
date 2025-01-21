@@ -20,6 +20,8 @@ export default function Home() {
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [isPaymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [tempOriginInput, setTempOriginInput] = useState('');
+
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -79,6 +81,16 @@ export default function Home() {
     } else {
       alert('Preencha todos os campos antes de solicitar a viagem.');
     }
+  };
+
+  const handleCancelRide = () => {
+    // Reseta os estados relacionados à viagem
+    setOrigin(null);
+    setDestination(null);
+    setDistance(0);
+    setPrice(0);
+    setPaymentMethod(null);
+    setPaymentModalVisible(false); // Fecha o modal
   };
 
   return (
@@ -150,24 +162,73 @@ export default function Home() {
           <Button theme="green" onPress={handleRequestRide} style={styles.button}>
             Solicitar Viagem
           </Button>
+
+          <Button
+            theme="red"
+            onPress={handleCancelRide} // Chama a função de cancelar viagem
+            style={styles.button}
+          >      Cancelar Viagem
+          </Button>
         </View>
       </Modal>
 
       {/* Modal para selecionar o destino */}
       <Modal visible={isModalVisible} transparent={true} animationType="slide">
         <View style={styles.modal}>
+          {/* Input para a localização atual do usuário */}
+          <GooglePlacesAutocomplete
+            placeholder="Digite sua localização"
+            onPress={(data, details) => {
+              if (details?.geometry?.location) {
+                const newOrigin = {
+                  latitude: details.geometry.location.lat,
+                  longitude: details.geometry.location.lng,
+                };
+                setOrigin(newOrigin);
+                setTempOriginInput(`${newOrigin.latitude.toFixed(6)}, ${newOrigin.longitude.toFixed(6)}`);
+              }
+            }}
+            query={{
+              key: GOOGLE_MAPS_API_KEY,
+              language: 'pt-BR',
+            }}
+            fetchDetails={true}
+            styles={{ textInput: styles.input }}
+            textInputProps={{
+              value: tempOriginInput,
+              onChangeText: (text) => {
+                setTempOriginInput(text);
+              },
+              onBlur: () => {
+                const [lat, lng] = tempOriginInput.split(',').map((coord) => parseFloat(coord.trim()));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                  setOrigin({ latitude: lat, longitude: lng });
+                }
+              },
+            }}
+          />
+
+
+          {/* Input para o destino */}
           <GooglePlacesAutocomplete
             placeholder="Digite o destino"
             onPress={handleSelectDestination}
-            query={{ key: 'AIzaSyDwghEhGK_hqRcjs4YNRs7BBsHXTXJPfWw', language: 'pt-BR' }}
+            query={{ key: GOOGLE_MAPS_API_KEY, language: 'pt-BR' }}
             fetchDetails={true}
             styles={{ textInput: styles.input }}
           />
-          <Button theme="red" onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+
+          {/* Botão para cancelar a seleção do destino */}
+          <Button
+            theme="red"
+            onPress={() => setModalVisible(false)}
+            style={styles.cancelButton}
+          >
             Cancelar
           </Button>
         </View>
       </Modal>
+
     </View>
   );
 }
