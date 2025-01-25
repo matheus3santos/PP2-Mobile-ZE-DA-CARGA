@@ -68,7 +68,7 @@ export default function Login() {
           icon={
             <Image
               source={require('../public/images/google-icon.png')}
-              style={{ width: 24, height: 24, marginRight: 8 }}
+              style={{ width: 24, height: 24, marginRight: 8, marginTop: 4 }}
             />
           }
           className="bg-orange-500 text-white mt-4"
