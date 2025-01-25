@@ -1,187 +1,291 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
-import axiosInstance from '../config/axiosUrlConfig';
+import { Avatar, H3, H4, H5, H6, Button, Text, Input } from "tamagui";
+import { Plus, LogOut, Car } from '@tamagui/lucide-icons'
+import { Image, TouchableOpacity, ScrollView, View, ActivityIndicator, StyleSheet, Alert, Modal } from "react-native";
+import { router } from "expo-router";
+import BottomBar from "components/BottomBar";
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useState } from "react";
+import axiosInstance from "app/config/axiosUrlConfig";
 
-
-const InfoCar = () => {
-    const [modalVisible, setModalVisible] = useState(true); // Modal visível por padrão
-    interface CarDetails {
-        modelo: string;
-        ano: string;
+interface Motorista {
+    id?: number;
+    email: string;
+    veiculo?: {
         placa: string;
+        modelo: string;
         renavam: string;
         cor: string;
-    }
+        ano: string;
+    };
+}
 
-    const [carDetails, setCarDetails] = useState<CarDetails | null>(null); // Estado para os detalhes do carro
-    const [loading, setLoading] = useState(true); // Estado para o carregamento
+interface VeiculoFormData {
+    placa: string;
+    modelo: string;
+    renavam: string;
+    cor: string;
+    ano: string;
+}
 
-
+export default function InfoCar() {
+    const [motorista, setMotorista] = useState<Motorista | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [veiculoForm, setVeiculoForm] = useState<VeiculoFormData>({
+        placa: '',
+        modelo: '',
+        renavam: '',
+        cor: '',
+        ano: ''
+    });
 
     useEffect(() => {
-        // Função para buscar dados da API
-        const fetchCarDetails = async () => {
+        const fetchProfileData = async () => {
             try {
-                const response = await axiosInstance.post("/api/motorista");
-                const data = response.data; // Acessa os dados diretamente da propriedade "data"
+                const token = await SecureStore.getItemAsync('token');
+                const email = await SecureStore.getItemAsync('email');
 
-                console.log('Dados da API:', data); // Verifica o que está sendo retornado
-
-                // Acessa o objeto "veiculo" retornado pela API
-                if (data && data.veiculo) {
-                    setCarDetails(data.veiculo);
-                } else {
-                    console.error('Objeto "veiculo" não encontrado na resposta da API.');
+                if (!token || !email) {
+                    router.push('/');
+                    return;
                 }
-            } catch (error) {
-                console.error('Erro ao buscar detalhes do carro:', error);
+
+                const response = await axiosInstance.get('/api/motorista');
+                const motoristaData = response.data.find((m: Motorista) => m.email === email);
+
+                if (motoristaData) {
+                    motoristaData.veiculo = motoristaData.veiculo || null;
+                }
+
+                setMotorista(motoristaData || null);
+            } catch (e) {
+                console.error('Erro ao buscar dados do perfil:', e);
+                setMotorista(null);
             } finally {
-                setLoading(false); // Finaliza o carregamento
+                setLoading(false);
             }
         };
 
-        fetchCarDetails();
+        fetchProfileData();
     }, []);
 
+    const handleCadastrarVeiculo = async () => {
+        if (!motorista?.id) {
+            Alert.alert('Erro', 'Motorista não identificado');
+            return;
+        }
 
+        try {
+            const response = await axiosInstance.post(`/api/motorista/veiculo/motorista/${motorista.id}`, veiculoForm);
 
+            // Atualiza o motorista com o novo veículo
+            setMotorista(prev => prev ? { ...prev, veiculo: response.data } : null);
 
-
-    const handleClose = () => {
-        setModalVisible(false); // Fecha o modal
-        router.push('/(logged-driver)/Profile') // Redireciona para outra página
+            setModalVisible(false);
+            Alert.alert('Sucesso', 'Veículo cadastrado com sucesso');
+        } catch (error) {
+            console.error('Erro ao cadastrar veículo:', error);
+            Alert.alert('Erro', 'Não foi possível cadastrar o veículo');
+        }
     };
 
-    const handleCloseEdit = () => {
-        setModalVisible(false); // Fecha o modal
-        router.push('/(logged-driver)/Profile') // Redireciona para outra página
-    };
+    if (loading) {
+        return <ActivityIndicator size="large" color="orange" />;
+    }
 
     return (
-        <View style={styles.container}>
-            {/* Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Detalhes do Carro</Text>
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+                <View style={styles.cardContainer}>
+                    {motorista?.veiculo ? (
+                        <>
+                            <Car size={50} color="black" style={styles.icon} />
+                            <View style={styles.vehicleInfo}>
+                                <H5 style={styles.infoText}>Modelo: {motorista.veiculo.modelo || 'N/A'}</H5>
+                                <H6 style={styles.infoText}>Placa: {motorista.veiculo.placa || 'N/A'}</H6>
+                                <H6 style={styles.infoText}>Cor: {motorista.veiculo.cor || 'N/A'}</H6>
+                                <H6 style={styles.infoText}>Ano: {motorista.veiculo.ano || 'N/A'}</H6>
+                                <H6 style={styles.infoText}>RENAVAM: {motorista.veiculo.renavam || 'N/A'}</H6>
+                            </View>
+                            <Button
+                                onPress={() => {
+                                    router.push('/Profile')
+                                }}
+                                style={styles.backButton}
+                            >
+                                Voltar
+                            </Button>
 
-
-
-                        <Text style={styles.modalText}><Text style={styles.bold}>Modelo:</Text> Caminhão</Text>
-                        <Text style={styles.modalText}><Text style={styles.bold}>Ano:</Text> 1975</Text>
-                        <Text style={styles.modalText}><Text style={styles.bold}>Cor:</Text> Azul</Text>
-                        <Text style={styles.modalText}><Text style={styles.bold}>Placa:</Text> HXT-2456</Text>
-                        <Text style={styles.modalText}><Text style={styles.bold}>Renavam:</Text> 54897961</Text>
-
-                        {loading ? (
-                            <ActivityIndicator size="large" color="#007bff" /> // Indicador de carregamento
-                        ) : carDetails ? (
-                            <>
-                                <Text style={styles.modalText}>
-                                    <Text style={styles.bold}>Modelo:</Text> {carDetails.modelo || 'N/A'}
-                                </Text>
-                                <Text style={styles.modalText}>
-                                    <Text style={styles.bold}>Ano:</Text> {carDetails.ano || 'N/A'}
-                                </Text>
-                                <Text style={styles.modalText}>
-                                    <Text style={styles.bold}>Placa:</Text> {carDetails.placa || 'N/A'}
-                                </Text>
-                                <Text style={styles.modalText}>
-                                    <Text style={styles.bold}>Renavam:</Text> {carDetails.renavam || 'N/A'}
-                                </Text>
-                                <Text style={styles.modalText}>
-                                    <Text style={styles.bold}>Cor:</Text> {carDetails.cor || 'N/A'}
-                                </Text>
-                            </>
-                        ) : (
-                            <Text style={styles.errorText}>Erro ao carregar dados.</Text>
-                        )}
-
-
-                        {/* Botão de edição */}
-                        <TouchableOpacity style={[styles.button, styles.editButton]} onPress={handleCloseEdit}>
-                            <Text style={styles.buttonText}>Editar</Text>
-                        </TouchableOpacity>
-
-                        {/* Botão de fechar */}
-                        <TouchableOpacity
-                            style={[styles.button, styles.closeButton]}
-                            onPress={handleClose} // Chama a função handleClose
-                        >
-                            <Text style={styles.buttonText}>Fechar</Text>
-                        </TouchableOpacity>
-                    </View>
+                        </>
+                    ) : (
+                        <View style={styles.noVehicleContainer}>
+                            <Text style={styles.noVehicleText}>Não existe veículo cadastrado</Text>
+                            <Button
+                                onPress={() => setModalVisible(true)}
+                                icon={<Plus />}
+                                style={styles.cadastrarButton}
+                            >
+                                Cadastrar Veículo
+                            </Button>
+                        </View>
+                    )}
                 </View>
-            </Modal>
+
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Cadastrar Veículo</Text>
+
+                            <Input
+                                placeholder="Placa"
+                                value={veiculoForm.placa}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, placa: text }))}
+                                style={styles.input}
+                            />
+                            <Input
+                                placeholder="Modelo"
+                                value={veiculoForm.modelo}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, modelo: text }))}
+                                style={styles.input}
+                            />
+                            <Input
+                                placeholder="RENAVAM"
+                                value={veiculoForm.renavam}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, renavam: text }))}
+                                style={styles.input}
+                            />
+                            <Input
+                                placeholder="Cor"
+                                value={veiculoForm.cor}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, cor: text }))}
+                                style={styles.input}
+                            />
+                            <Input
+                                placeholder="Ano"
+                                value={veiculoForm.ano}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, ano: text }))}
+                                style={styles.input}
+                            />
+
+                            <View style={styles.modalButtonContainer}>
+                                <Button
+                                    onPress={() => setModalVisible(false)}
+                                    style={styles.cancelButton}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onPress={handleCadastrarVeiculo}
+                                    style={styles.confirmButton}
+                                >
+                                    Cadastrar
+                                </Button>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </ScrollView>
+            <BottomBar screen="Profile" />
         </View>
-    );
-};
+    )
+}
+
 
 const styles = StyleSheet.create({
+    cardContainer: {
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        padding: 20,
+        margin: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3
+    },
+    icon: {
+        marginBottom: 15
+    },
+    vehicleInfo: {
+        alignItems: 'center'
+    },
+    infoText: {
+        color: 'black',
+        marginVertical: 5
+    },
+    noVehicleContainer: {
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    noVehicleText: {
+        color: 'black',
+        fontSize: 16,
+        marginBottom: 15
+    },
+    cadastrarButton: {
+        backgroundColor: 'orange',
+        color: 'white'
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f4f4f9',
+        backgroundColor: 'white',
     },
-    modalOverlay: {
+    modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    errorText: {
-        color: 'red',
-        fontSize: 16,
-        marginVertical: 5,
+        backgroundColor: 'rgba(0,0,0,0.5)'
     },
     modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
+        width: '90%',
+        backgroundColor: 'white',
+        borderRadius: 10,
         padding: 20,
-        alignItems: 'center',
-        width: 300,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
+        alignItems: 'center'
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 10,
+        marginBottom: 15
     },
-    modalText: {
-        fontSize: 16,
-        marginVertical: 5,
+    input: {
+        width: '100%',
+        marginVertical: 10
     },
-    bold: {
-        fontWeight: 'bold',
+    modalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 15
     },
-    button: {
+    cancelButton: {
+        backgroundColor: 'gray',
+        color: 'white',
+        flex: 1,
+        marginRight: 10
+    },
+    confirmButton: {
+        backgroundColor: 'orange',
+        color: 'white',
+        flex: 1
+    }
+    ,
+    backButton: {
+        backgroundColor: 'orange',
+        color: 'white',
         padding: 10,
-        borderRadius: 4,
-        marginTop: 10,
-        width: '80%',
+        width: 100,
         alignItems: 'center',
-    },
-    editButton: {
-        backgroundColor: '#007bff',
-    },
-    closeButton: {
-        backgroundColor: '#dc3545',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-    },
-});
+        marginTop: 20,
 
-export default InfoCar;
+    }
+});

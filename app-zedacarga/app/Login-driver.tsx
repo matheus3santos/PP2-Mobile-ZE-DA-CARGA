@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { H4, H6, Button, Input } from 'tamagui';
 import { router } from 'expo-router';
+import axiosInstance from './config/axiosUrlConfig';
+import * as SecureStore from 'expo-secure-store';
+
 
 
 export default function Login() {
@@ -9,17 +12,34 @@ export default function Login() {
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    if (email === 'teste@mock.com' && senha === '123456') {
-      setError('');
-      alert('Login realizado com sucesso!');
-    } else {
-      setError('E-mail ou senha inválidos.');
-    }
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex para validar formato de email
+    return regex.test(email);
   };
 
-  const handleGoogleLogin = () => {
-    alert('Login com Google mockado!');
+  const handleGoogleLogin = async () => {
+    if (!validateEmail(email)) {
+      setError('Por favor, insira um email válido.');
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.get('/api/motorista');
+      const motorista = response.data.find((motorista: any) => motorista.email === email);
+
+      if (motorista) {
+        // Armazena os dados e o token no SecureStore
+        await SecureStore.setItemAsync('token', `secure_token_${motorista.id}`);
+        await SecureStore.setItemAsync('email', motorista.email);
+
+        router.push('/(logged-driver)/Home'); // Redireciona para o perfil
+      } else {
+        setError('E-mail não encontrado. Verifique ou crie uma conta.');
+      }
+    } catch (e) {
+      console.error('Erro ao verificar e-mail:', e);
+      setError('Ocorreu um erro ao verificar o e-mail. Tente novamente.');
+    }
   };
 
   return (
@@ -44,7 +64,7 @@ export default function Login() {
             placeholder="Digite seu e-mail"
           />
         </View>
-        <View style={[styles.inputGroup, { marginTop: 16, marginBottom: 18 }]}>
+        {/* <View style={[styles.inputGroup, { marginTop: 16, marginBottom: 18 }]}>
           <H6>Senha</H6>
           <Input
             value={senha}
@@ -53,17 +73,12 @@ export default function Login() {
             className="w-80 bg-white text-black rounded shadow hover:border-orange-600"
             placeholder="Digite sua senha"
           />
-        </View>
+        </View> */}
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Button onPress={() => { router.push('/(logged-driver)/Home') }} className="marginTop-10 w-60 bg-orange-500 rounded-3xl mt-8 text-white">
+        <Button onPress={handleGoogleLogin} className="marginTop-20 w-60 bg-orange-500 rounded-3xl mt-8 text-white">
           Entrar
         </Button>
-
-        <TouchableOpacity>
-          <H6 style={styles.forgotPasswordText}>Esqueceu a senha ?</H6>
-
-        </TouchableOpacity>
 
         <TouchableOpacity>
           <H6
@@ -101,6 +116,7 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     width: '100%',
+    marginBottom: 18,
   },
   errorText: {
     color: 'red',

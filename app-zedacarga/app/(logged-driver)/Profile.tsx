@@ -1,55 +1,80 @@
 import { Avatar, H3, H4, H5, H6, Button, Text } from "tamagui";
 import { Plus, LogOut } from '@tamagui/lucide-icons'
 
-import { Image, TouchableOpacity, ScrollView, View } from "react-native";
+import { Image, TouchableOpacity, ScrollView, View, ActivityIndicator, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import BottomBar from "components/BottomBar";
-// import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
-// import axiosInstance from "app/config/axiosUrlConfig";
+import axiosInstance from "app/config/axiosUrlConfig";
+
+interface Motorista {
+    nome: string;
+    email: string;
+    telefone: string;
+    cpf: string;
+    rendaMensal: number;
+    veiculo?: { placa: string; modelo: string; renavam: string; cor: string; ano: string; } | null;
+}
 
 export default function Profile() {
 
-    // const[token, setToken] = useState('');
-    // const[username, setUsername] = useState('');
-    // const[idUser, setIdUser] = useState('');
+    const [motorista, setMotorista] = useState<Motorista | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    // const getUsername = async () => {
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            const token = await SecureStore.getItemAsync('token');
+            const email = await SecureStore.getItemAsync('email');
 
-    //     const tokenStorage = await SecureStore.getItemAsync('token') || '';
-    //     const usernameStorage = await SecureStore.getItemAsync('username') || '';
-    //     const idUserStorage = await SecureStore.getItemAsync('idUser') || '';
+            if (!token || !email) {
+                router.push('/'); // Redireciona se não estiver logado
+                return;
+            }
 
-    //     const tokenParse = JSON.parse(tokenStorage);
-    //     const usernameParse = JSON.parse(usernameStorage);
-    //     const idUserParse = JSON.parse(idUserStorage);
+            try {
+                const response = await axiosInstance.get('/api/motorista');
+                const motoristaData = response.data.find((motorista: Motorista) => motorista.email === email);
+                setMotorista(motoristaData || null);
+            } catch (e) {
+                console.error('Erro ao buscar dados do perfil:', e);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    //     setUsername(usernameParse)
-    // }
+        fetchProfileData();
+    }, []);
 
-    // useEffect(()=>{
-    //     getUsername();
-    // },[])
+    const handleLogout = async () => {
+        await SecureStore.deleteItemAsync('token');
+        await SecureStore.deleteItemAsync('email');
+        router.push('/'); // Redireciona para login
+    };
 
-    // const logoutAccount = async () => {
-    //     await SecureStore.deleteItemAsync('token');
-    //     await SecureStore.deleteItemAsync('username');
-    //     await SecureStore.deleteItemAsync('idUser');
-    //     router.push('/')
-    // }
+    if (loading) {
+        return <ActivityIndicator size="large" color="orange" />;
+    }
 
+    if (!motorista) {
+        return (
+            <View style={styles.container}>
+                <Text>Erro ao carregar perfil. Tente novamente.</Text>
+            </View>
+        );
+    }
 
 
     return (
         <View style={{ flex: 1, backgroundColor: 'white' }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
                 <View style={{ alignItems: 'center', marginVertical: 20 }}>
-                    <H3 style={{ color: 'black' }}>Nome do usuário</H3>
+                    <H3 style={{ color: 'black' }}>{motorista.nome}</H3>
                 </View>
                 <View style={{ alignItems: 'center' }}>
                     <Button
                         onPress={() => {
-                        router.push('/EditProfile')
+                            router.push('/EditProfile')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -58,7 +83,7 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                        router.push('/InfoCar')
+                            router.push('/InfoCar')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -67,7 +92,7 @@ export default function Profile() {
                     </Button>
                     <Button
                         onPress={() => {
-                        router.push('/EditCar')
+                            router.push('/EditCar')
                         }}
                         style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
                         icon={Plus}
@@ -84,9 +109,7 @@ export default function Profile() {
                         Historico de entregas
                     </Button>
                     <Button
-                        onPress={() => {
-                            router.push('/')
-                        }}
+                        onPress={(handleLogout)}
                         style={{ backgroundColor: 'red', color: 'white', width: 240, marginBottom: 10 }}
                         icon={LogOut}
                     >
@@ -98,3 +121,12 @@ export default function Profile() {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+    }
+});

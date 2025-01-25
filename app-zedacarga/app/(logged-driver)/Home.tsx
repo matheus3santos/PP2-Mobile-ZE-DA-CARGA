@@ -1,14 +1,36 @@
-import { H6 } from 'tamagui';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Text } from 'react-native';
 import BottomBar from 'components/BottomBar';
-import NearbyFrete from 'components/NearbyFrete';
 import BottomActiveFrete from 'components/BottomActiveFrete';
-
+import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
+  const [motoristaId, setMotoristaId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getMotoristaId = async () => {
+      try {
+        const id = await SecureStore.getItemAsync('token');
+        if (id) {
+          // Remove o prefixo "secure_token_" antes de salvar o ID
+          const idSemPrefixo = id.replace('secure_token_', '');
+          setMotoristaId(idSemPrefixo);
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar o ID do motorista:', error);
+      }
+    };
+
+    getMotoristaId();
+  }, []);
+
+
   return (
     <View style={styles.container}>
-      <View style={styles.imageContainer}></View>
+      <View style={styles.imageContainer}>
+        <Text style={styles.title}>Bem-vindo, Motorista!</Text>
+        {motoristaId ? <Text>ID do Motorista: {motoristaId}</Text> : <Text>Carregando...</Text>}
+      </View>
 
       <View style={styles.buttonContainer}></View>
       <BottomActiveFrete />
@@ -28,13 +50,12 @@ const styles = StyleSheet.create({
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  textDescription: {
-    textAlign: 'center',
-    color: 'black',
-    fontSize: 12,
-    padding: 16,
-    marginTop: 32,
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
   buttonContainer: {
     justifyContent: 'center',
