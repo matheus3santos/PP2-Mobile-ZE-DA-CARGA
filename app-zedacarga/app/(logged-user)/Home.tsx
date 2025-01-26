@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button } from 'tamagui';
-import { View, StyleSheet, Modal, Text, Dimensions } from 'react-native';
+import { Button, Select, Checkbox, XStack, YStack, Label } from 'tamagui';
+import { View, StyleSheet, Modal, Text, Dimensions, Alert } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -8,6 +8,22 @@ import * as Location from 'expo-location';
 import BottomBarUser from 'components/BottomBarUser';
 import { GOOGLE_MAPS_API_KEY } from '../../env';
 import 'react-native-get-random-values';
+import * as SecureStore from 'expo-secure-store';
+import axiosInstance from 'app/config/axiosUrlConfig';
+
+
+
+interface Card {
+  id: number;
+  tipoCartao: string;
+  numeroCartao: string;
+}
+
+interface Motorista {
+  id: number;
+  nome: string;
+  email: string;
+}
 
 const { height } = Dimensions.get('window');
 
@@ -21,11 +37,18 @@ export default function Home() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isPaymentModalVisible, setPaymentModalVisible] = useState(false);
   const [tempOriginInput, setTempOriginInput] = useState('');
+  const [cards, setCards] = useState<Card[]>([]);
+  const [drivers, setDrivers] = useState<Motorista[]>([]);
+  const [clienteId, setClienteId] = useState<string | null>(null);
+  const [driverMethod, setDriverMethod] = useState<string | null>(null);
+
+
 
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
+      // Location permissions
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
         const location = await Location.getCurrentPositionAsync();
@@ -38,8 +61,33 @@ export default function Home() {
           longitude: location.coords.longitude,
         });
       }
-    })();
+
+      // Fetch client ID and cards
+      const email = await SecureStore.getItemAsync('email');
+      if (!email) return;
+
+      try {
+        const response = await axiosInstance.get('/api/cliente');
+        const clienteData = response.data.find((cliente: any) => cliente.email === email);
+        setClienteId(clienteData?.id || null);
+
+        if (clienteData?.id) {
+          const cardsResponse = await axiosInstance.get(`/api/cliente/cartoes/${clienteData.id}`);
+          setCards(Array.isArray(cardsResponse.data) ? cardsResponse.data : [cardsResponse.data]);
+
+          // Fetch drivers
+          const driversResponse = await axiosInstance.get('/api/motorista');
+          setDrivers(driversResponse.data);
+        }
+      } catch (e) {
+        console.error('Erro ao buscar dados:', e);
+      }
+    };
+
+    fetchData();
   }, []);
+
+
 
   const handleCenterUserLocation = () => {
     if (userLocation) {
@@ -67,21 +115,71 @@ export default function Home() {
     setPrice(distance * pricePerKm);
   };
 
-  const handleRequestRide = () => {
-    if (origin && destination && paymentMethod) {
-      // Enviar os dados para o back-end ou processar a lógica localmente
-      console.log('Solicitação de viagem:', {
-        origem: origin,
-        destino: destination,
-        distância: distance,
-        preço: price,
-        métodoPagamento: paymentMethod,
+  // const handleRequestRide = async () => {
+  //   if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
+  //     Alert.alert('Erro', 'Preencha todos os campos antes de solicitar a viagem.');
+  //     return;
+  //   }
+
+  //   console.log('Informações da Viagem:');
+  //   console.log('Cliente ID:', clienteId);
+  //   console.log('Método de Pagamento (Cartão ID):', paymentMethod);
+  //   console.log('Motorista Selecionado (Motorista ID):', driverMethod);
+  //   console.log('Origem:', `${origin.latitude},${origin.longitude}`);
+  //   console.log('Destino:', `${destination.latitude},${destination.longitude}`);
+  //   console.log('Valor da Viagem:', price);
+
+  //   try {
+  //     const response = await axiosInstance.post(
+  //       `/api/viagem/cliente/${clienteId}/cartao/${paymentMethod}/motorista/${driverMethod}`,
+  //       {
+  //         origem: `${origin.latitude},${origin.longitude}`,
+  //         destino: `${destination.latitude},${destination.longitude}`,
+  //         valor: price
+  //       }
+  //     );
+  //     console.log('Resposta da API:', response.data);
+
+
+  //     Alert.alert('Sucesso', 'Viagem solicitada com sucesso!');
+  //     // Reset states
+  //     setPaymentModalVisible(false);
+  //   } catch (error) {
+  //     console.error('Erro ao solicitar viagem:', error);
+  //     Alert.alert('Erro', 'Não foi possível solicitar a viagem.');
+  //   }
+  // };
+
+  const handleRequestRide = async () => {
+    if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
+      Alert.alert('Erro', 'Preencha todos os campos antes de solicitar a viagem.');
+      return;
+    }
+
+    const fixedPrice = 30; // Valor fixo da viagem para testes
+    const origem = `${origin.latitude},${origin.longitude}`;
+    const destino = `${destination.latitude},${destination.longitude}`;
+
+    try {
+      const url = `/api/viagem/cliente/${clienteId}/cartao/${paymentMethod}/motorista/${driverMethod}?clienteId=${clienteId}&cartaoClienteId=${paymentMethod}&motoristaId=${driverMethod}`;
+
+      const response = await axiosInstance.post(url, {
+        origem,
+        destino,
+        valor: price,
       });
-      alert('Viagem solicitada com sucesso!');
-    } else {
-      alert('Preencha todos os campos antes de solicitar a viagem.');
+
+      Alert.alert('Sucesso', 'Viagem solicitada com sucesso!');
+      console.log('Resposta da API:', response.data);
+
+      // Reset states
+      setPaymentModalVisible(false);
+    } catch (error) {
+      console.error('Erro ao solicitar viagem:', error.response?.data || error.message);
+      Alert.alert('Erro', 'Não foi possível solicitar a viagem.');
     }
   };
+
 
   const handleCancelRide = () => {
     // Reseta os estados relacionados à viagem
@@ -152,22 +250,58 @@ export default function Home() {
           <Text>Destino: {destination ? `Lat: ${destination.latitude}, Lng: ${destination.longitude}` : 'Não definido'}</Text>
           <Text>Distância: {distance.toFixed(2)} km</Text>
           <Text>Preço: R$ {price.toFixed(2)}</Text>
-          <Button
-            theme="blue"
-            onPress={() => setPaymentMethod('Cartão de Crédito')}
-            style={[styles.button, paymentMethod === 'Cartão de Crédito' && styles.selectedButton]}
-          >
-            Pagamento: Cartão de Crédito
-          </Button>
-          <Button theme="green" onPress={handleRequestRide} style={styles.button}>
+
+          <YStack space="$4" mt="$4">
+            <Text>Selecione um Cartão:</Text>
+            {cards.map((card) => (
+              <XStack key={card.id} alignItems="center" space="$4">
+                <Checkbox
+                  id={`card-${card.id}`}
+                  checked={paymentMethod === card.id.toString()}
+                  onCheckedChange={() => setPaymentMethod(card.id.toString())}
+                  backgroundColor={paymentMethod === card.id.toString() ? '$green6' : '$gray6'} // Add this line
+
+                >
+                  <Checkbox.Indicator backgroundColor={paymentMethod === card.id.toString() ? '$green10' : '$gray10'} // Optional: also change indicator color
+                  />
+                </Checkbox>
+                <Label htmlFor={`card-${card.id}`}>
+                  {card.tipoCartao} - Final {card.numeroCartao.slice(-4)}
+                </Label>
+              </XStack>
+            ))}
+
+            <Text>Selecione um Motorista:</Text>
+            {drivers.map((driver) => (
+              <XStack key={driver.id} alignItems="center" space="$4">
+                <Checkbox
+                  id={`driver-${driver.id}`}
+                  checked={driverMethod === driver.id.toString()}
+                  onCheckedChange={() => setDriverMethod(driver.id.toString())}
+                  backgroundColor={driverMethod === driver.id.toString() ? '$green6' : '$gray6'} // Add this line
+                >
+                  <Checkbox.Indicator
+                    backgroundColor={driverMethod === driver.id.toString() ? '$green10' : '$gray10'} // Optional: also change indicator color
+                  />
+                </Checkbox>
+                <Label htmlFor={`driver-${driver.id}`}>
+                  {driver.nome}
+                </Label>
+              </XStack>
+            ))}
+          </YStack>
+
+          <Button theme="green" onPress={handleRequestRide} style={styles.button} mt="$4">
             Solicitar Viagem
           </Button>
 
           <Button
             theme="red"
-            onPress={handleCancelRide} // Chama a função de cancelar viagem
+            onPress={() => setPaymentModalVisible(false)}
             style={styles.button}
-          >      Cancelar Viagem
+            mt="$4"
+          >
+            Cancelar Viagem
           </Button>
         </View>
       </Modal>

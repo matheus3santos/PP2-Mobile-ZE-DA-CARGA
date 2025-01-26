@@ -5,6 +5,8 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import axiosInstance from '../config/axiosUrlConfig';
 import { Plus, LogOut } from '@tamagui/lucide-icons'
+import BottomBarUser from 'components/BottomBarUser';
+
 
 
 // Definindo o tipo esperado para o cliente
@@ -114,7 +116,10 @@ export default function Profile() {
                     </Button>
 
                 </View>
+
             </ScrollView>
+            <BottomBarUser screen="HomeUser" />
+
         </View>
     );
 }
