@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f4f4f9',
     borderRadius: 8,
+    flex: 1
   },
   title: {
     fontSize: 20,
@@ -124,16 +125,22 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     marginBottom: 10,
+    marginTop: 25
+
   },
   cancelButton: {
     backgroundColor: '#dc3545',
     padding: 15,
     borderRadius: 4,
     alignItems: 'center',
+    marginTop: 8
+
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+    marginTop: 5
+
   },
 });
 
