@@ -81,7 +81,7 @@ export default function addCreditUser() {
               options={{
                 mask: '99/9999',
               }}
-              placeholder="MM/AA"
+              placeholder="MM/AAAA"
               style={{ marginBottom: 16 }}
             />
 

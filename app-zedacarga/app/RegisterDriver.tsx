@@ -126,8 +126,12 @@ export default function RegisterDriver() {
             value={formData.email}
             onChangeText={(value) => handleChange('email', value)}
           />
-          <Input
+          <TextInputMask
             style={styles.input}
+            type={'custom'}
+            options={{
+              mask: '99999999999'
+            }}
             placeholder="Número da CNH"
             value={formData.numeroCnh}
             onChangeText={(value) => handleChange('numeroCnh', value)}
@@ -178,9 +182,13 @@ export default function RegisterDriver() {
             value={formData.numero}
             onChangeText={(value) => handleChange('numero', value)}
           />
-          <Input
+          <TextInputMask
             style={styles.input}
             placeholder="CEP"
+            type={'custom'}
+            options={{
+              mask: '99999-999'
+            }}
             value={formData.cep}
             onChangeText={(value) => handleChange('cep', value)}
           />
