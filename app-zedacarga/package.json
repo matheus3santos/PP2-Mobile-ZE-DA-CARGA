@@ -22,6 +22,7 @@
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/native": "^7.0.0",
+    "@stomp/stompjs": "^7.0.0",
     "@tamagui/accordion": "^1.117.2",
     "@tamagui/config": "^1.117.2",
     "@tamagui/lucide-icons": "^1.118.1",
@@ -61,7 +62,8 @@
     "react-native-svg": "15.8.0",
     "react-native-text-input-mask": "^3.2.0",
     "react-native-web": "^0.19.12",
-    "tamagui": "^1.117.2"
+    "tamagui": "^1.117.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.6",

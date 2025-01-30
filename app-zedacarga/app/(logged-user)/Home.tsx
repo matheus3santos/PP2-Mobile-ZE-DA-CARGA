@@ -10,6 +10,8 @@ import { GOOGLE_MAPS_API_KEY } from '../../env';
 import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import axiosInstance from 'app/config/axiosUrlConfig';
+import { Client } from '@stomp/stompjs';
+
 
 
 
@@ -115,40 +117,7 @@ export default function Home() {
     setPrice(distance * pricePerKm);
   };
 
-  // const handleRequestRide = async () => {
-  //   if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
-  //     Alert.alert('Erro', 'Preencha todos os campos antes de solicitar a viagem.');
-  //     return;
-  //   }
 
-  //   console.log('Informações da Viagem:');
-  //   console.log('Cliente ID:', clienteId);
-  //   console.log('Método de Pagamento (Cartão ID):', paymentMethod);
-  //   console.log('Motorista Selecionado (Motorista ID):', driverMethod);
-  //   console.log('Origem:', `${origin.latitude},${origin.longitude}`);
-  //   console.log('Destino:', `${destination.latitude},${destination.longitude}`);
-  //   console.log('Valor da Viagem:', price);
-
-  //   try {
-  //     const response = await axiosInstance.post(
-  //       `/api/viagem/cliente/${clienteId}/cartao/${paymentMethod}/motorista/${driverMethod}`,
-  //       {
-  //         origem: `${origin.latitude},${origin.longitude}`,
-  //         destino: `${destination.latitude},${destination.longitude}`,
-  //         valor: price
-  //       }
-  //     );
-  //     console.log('Resposta da API:', response.data);
-
-
-  //     Alert.alert('Sucesso', 'Viagem solicitada com sucesso!');
-  //     // Reset states
-  //     setPaymentModalVisible(false);
-  //   } catch (error) {
-  //     console.error('Erro ao solicitar viagem:', error);
-  //     Alert.alert('Erro', 'Não foi possível solicitar a viagem.');
-  //   }
-  // };
 
   const handleRequestRide = async () => {
     if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
@@ -156,7 +125,7 @@ export default function Home() {
       return;
     }
 
-    const fixedPrice = 30; // Valor fixo da viagem para testes
+    //const fixedPrice = 30; // Valor fixo da viagem para testes
     const origem = `${origin.latitude},${origin.longitude}`;
     const destino = `${destination.latitude},${destination.longitude}`;
 
