@@ -4,6 +4,7 @@ import BottomBar from "components/BottomBar";
 import BottomActiveFrete from "components/BottomActiveFrete";
 import * as SecureStore from "expo-secure-store";
 import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 interface RideRequest {
   idViagem: number;
@@ -37,8 +38,9 @@ export default function Index() {
   useEffect(() => {
     if (!motoristaId) return;
 
+    const socket = new SockJS("https://176b-200-238-97-165.ngrok-free.app/ws");
     const client = new Client({
-      brokerURL: "wss://176b-200-238-97-165.ngrok-free.app/ws",
+      webSocketFactory: () => socket,
       onConnect: () => {
         console.log("Conectado ao WebSocket");
         client.subscribe(`/topic/motorista/${motoristaId}`, (message) => {
@@ -71,7 +73,7 @@ export default function Index() {
           },
           body: JSON.stringify({
             idMotorista: motoristaId,
-            idContaBancariaMotorista: 1, // Ajuste para pegar a conta correta
+            idContaBancariaMotorista: 1,
             statusViagem: "ACEITO",
           }),
         }
