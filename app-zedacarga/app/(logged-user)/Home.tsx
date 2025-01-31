@@ -43,6 +43,7 @@ export default function Home() {
   const [drivers, setDrivers] = useState<Motorista[]>([]);
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [driverMethod, setDriverMethod] = useState<string | null>(null);
+  
 
 
 
@@ -87,6 +88,22 @@ export default function Home() {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const client = new Client({
+      brokerURL: 'https://176b-200-238-97-165.ngrok-free.app/ws',
+      onConnect: () => console.log('Conectado ao WebSocket'),
+      onDisconnect: () => console.log('Desconectado do WebSocket'),
+      onStompError: (error) => console.error('Erro no STOMP:', error),
+    });
+  
+    client.activate();
+    clientRef.current = client;
+  
+    return () => {
+      client.deactivate();
+    };
   }, []);
 
 
