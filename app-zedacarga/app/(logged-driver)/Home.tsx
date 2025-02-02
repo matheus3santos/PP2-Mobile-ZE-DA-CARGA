@@ -1,10 +1,22 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Text, Alert, Modal, Button } from "react-native";
+import { View, StyleSheet, Text, Alert, Modal } from "react-native";
 import BottomBar from "components/BottomBar";
 import BottomActiveFrete from "components/BottomActiveFrete";
 import * as SecureStore from "expo-secure-store";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import axiosInstance from "app/config/axiosUrlConfig";
+import { Button } from "tamagui";
+
+interface ContaBancaria {
+  id: string;
+}
+
+interface Motorista {
+  id?: number;
+  email: string;
+  contas?: ContaBancaria[];
+}
 
 interface RideRequest {
   idViagem: number;
@@ -18,14 +30,28 @@ export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [rideRequest, setRideRequest] = useState<RideRequest | null>(null);
   const clientRef = useRef<Client | null>(null);
+  const [contaForm, setContaForm] = useState<ContaBancaria>({
+    id: "",
+  });
 
   useEffect(() => {
     const getMotoristaId = async () => {
       try {
         const id = await SecureStore.getItemAsync("token");
+        const email = await SecureStore.getItemAsync("email");
+
         if (id) {
           const idSemPrefixo = id.replace("secure_token_", "");
           setMotoristaId(idSemPrefixo);
+        }
+
+        const response = await axiosInstance.get("/api/motorista");
+        const motoristaData = response.data.find(
+          (m: Motorista) => m.email === email
+        );
+
+        if (motoristaData) {
+          motoristaData.contas = motoristaData.contas || [];
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
@@ -38,7 +64,7 @@ export default function Index() {
   useEffect(() => {
     if (!motoristaId) return;
 
-    const socket = new SockJS("https://176b-200-238-97-165.ngrok-free.app/ws");
+    const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
     const client = new Client({
       webSocketFactory: () => socket,
       onConnect: () => {
@@ -61,33 +87,28 @@ export default function Index() {
   }, [motoristaId]);
 
   const handleAcceptRide = async () => {
-    if (!rideRequest || !motoristaId) return;
+    if (!rideRequest || !motoristaId || !contaForm) return;
 
     try {
-      const response = await fetch(
-        `https://176b-200-238-97-165.ngrok-free.app/api/viagens/${rideRequest.idViagem}/aceitar`,
+      const response = await axiosInstance.post(
+        `/api/viagens/${rideRequest.idViagem}/aceitar`,
         {
-          method: "POST",
+          idMotorista: motoristaId,
+          idContaBancariaMotorista: contaForm.id,
+          statusViagem: "ACEITO",
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            idMotorista: motoristaId,
-            idContaBancariaMotorista: 1,
-            statusViagem: "ACEITO",
-          }),
         }
       );
-
-      if (!response.ok) {
-        throw new Error("Erro ao aceitar a viagem");
-      }
 
       Alert.alert("Sucesso", "Viagem aceita!");
       setRideRequest(null);
     } catch (error) {
       Alert.alert("Erro", "Falha ao aceitar a viagem.");
-      console.error(error);
+      console.error("Erro ao aceitar viagem:", error);
     }
   };
 
@@ -108,13 +129,41 @@ export default function Index() {
       <Modal visible={!!rideRequest} transparent={true} animationType="slide">
         {rideRequest && (
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Nova Solicitação de Viagem</Text>
-            <Text>Origem: {rideRequest.origem}</Text>
-            <Text>Destino: {rideRequest.destino}</Text>
-            <Text>Valor: R$ {rideRequest.valor.toFixed(2)}</Text>
-            <View style={styles.buttonContainer}>
-              <Button title="Aceitar" onPress={handleAcceptRide} />
-              <Button title="Recusar" onPress={handleRejectRide} />
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  Nova Solicitação de Viagem
+                </Text>
+              </View>
+
+              <View style={styles.tripInfo}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Origem:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.origem}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Destino:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.destino}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Valor:</Text>
+                  <Text style={styles.infoValue}>
+                    R$ {rideRequest.valor.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button onPress={handleRejectRide} style={styles.rejectButton}>
+                  Recusar
+                </Button>
+
+                <Button onPress={handleAcceptRide} style={styles.acceptButton}>
+                  Aceitar
+                </Button>
+              </View>
             </View>
           </View>
         )}
@@ -129,7 +178,6 @@ export default function Index() {
         )}
       </View>
 
-      <BottomActiveFrete />
       <BottomBar screen="Home" />
     </View>
   );
@@ -159,15 +207,71 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 16,
   },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 15,
+    width: "90%",
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingBottom: 15,
+    marginBottom: 15,
+  },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 10,
-    color: "white",
+    color: "#333",
+    textAlign: "center",
+  },
+  tripInfo: {
+    marginVertical: 15,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 8,
+    paddingHorizontal: 10,
+  },
+  infoLabel: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  infoValue: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "600",
+    flex: 1,
+    textAlign: "right",
+    marginLeft: 10,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 16,
+    marginTop: 20,
+    gap: 10,
+  },
+  rejectButton: {
+    flex: 1,
+    backgroundColor: "#ff4444",
+    borderRadius: 8,
+    paddingVertical: 12,
+  },
+  acceptButton: {
+    flex: 1,
+    backgroundColor: "#4CAF50",
+    borderRadius: 8,
+    paddingVertical: 12,
   },
 });
