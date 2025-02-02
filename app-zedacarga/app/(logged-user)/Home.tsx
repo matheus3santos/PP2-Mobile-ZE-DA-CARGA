@@ -10,7 +10,6 @@ import { GOOGLE_MAPS_API_KEY } from '../../env';
 import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import axiosInstance from 'app/config/axiosUrlConfig';
-import { Client } from '@stomp/stompjs';
 
 
 
@@ -43,7 +42,7 @@ export default function Home() {
   const [drivers, setDrivers] = useState<Motorista[]>([]);
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [driverMethod, setDriverMethod] = useState<string | null>(null);
-  
+
 
 
 
@@ -90,24 +89,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const client = new Client({
-      brokerURL: 'https://176b-200-238-97-165.ngrok-free.app/ws',
-      onConnect: () => console.log('Conectado ao WebSocket'),
-      onDisconnect: () => console.log('Desconectado do WebSocket'),
-      onStompError: (error) => console.error('Erro no STOMP:', error),
-    });
-  
-    client.activate();
-    clientRef.current = client;
-  
-    return () => {
-      client.deactivate();
-    };
-  }, []);
-
-
-
   const handleCenterUserLocation = () => {
     if (userLocation) {
       mapRef.current?.animateToRegion({
@@ -142,7 +123,6 @@ export default function Home() {
       return;
     }
 
-    //const fixedPrice = 30; // Valor fixo da viagem para testes
     const origem = `${origin.latitude},${origin.longitude}`;
     const destino = `${destination.latitude},${destination.longitude}`;
 
@@ -152,7 +132,7 @@ export default function Home() {
       const response = await axiosInstance.post(url, {
         origem,
         destino,
-        valor: price,
+        valor: 30,
       });
 
       Alert.alert('Sucesso', 'Viagem solicitada com sucesso!');

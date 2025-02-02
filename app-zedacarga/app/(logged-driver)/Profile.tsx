@@ -70,6 +70,7 @@ export default function Profile() {
             <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
                 <View style={{ alignItems: 'center', marginVertical: 20 }}>
                     <H3 style={{ color: 'black' }}>{motorista.nome}</H3>
+
                 </View>
                 <View style={{ alignItems: 'center' }}>
                     <Button
@@ -89,6 +90,15 @@ export default function Profile() {
                         icon={Plus}
                     >
                         Informações do Veiculo
+                    </Button>
+                    <Button
+                        onPress={() => {
+                            router.push('/InfoConta')
+                        }}
+                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
+                        icon={Plus}
+                    >
+                        Conta Bancaria
                     </Button>
                     <Button
                         onPress={() => {
