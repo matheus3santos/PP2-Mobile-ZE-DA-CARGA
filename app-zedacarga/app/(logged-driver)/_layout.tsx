@@ -102,6 +102,15 @@ function RootLayoutNav() {
         />
 
         <Stack.Screen
+          name="InfoConta"
+          options={{
+            title: 'InfoConta',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+
+        <Stack.Screen
           name="EditCar"
           options={{
             title: 'EditCar',

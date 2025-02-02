@@ -1,38 +1,58 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Text, Alert } from 'react-native';
-import BottomBar from 'components/BottomBar';
-import BottomActiveFrete from 'components/BottomActiveFrete';
-import * as SecureStore from 'expo-secure-store';
-import { Modal, Button } from 'react-native';
-import { Client } from '@stomp/stompjs';
+import React, { useEffect, useState, useRef } from "react";
+import { View, StyleSheet, Text, Alert, Modal } from "react-native";
+import BottomBar from "components/BottomBar";
+import BottomActiveFrete from "components/BottomActiveFrete";
+import * as SecureStore from "expo-secure-store";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import axiosInstance from 'app/config/axiosUrlConfig';
+import { Button } from "tamagui";
 
-
-interface RideRequest {
-  clienteId: number;
-  origem: { lat: number; lng: number };
-  destino: { lat: number; lng: number };
-  valor: number;
+interface ContaBancaria {
+  id: string;
 }
 
+interface Motorista {
+  id?: number;
+  email: string;
+  contas?: ContaBancaria[];
+}
+
+interface RideRequest {
+  idViagem: number;
+  origem: string;
+  destino: string;
+  valor: number;
+  clienteId: number;
+}
 
 export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [rideRequest, setRideRequest] = useState<RideRequest | null>(null);
   const clientRef = useRef<Client | null>(null);
-
-
+  const [contaForm, setContaForm] = useState<ContaBancaria>({
+    id: '',
+  });
 
   useEffect(() => {
     const getMotoristaId = async () => {
       try {
-        const id = await SecureStore.getItemAsync('token');
+        const id = await SecureStore.getItemAsync("token");
+        const email = await SecureStore.getItemAsync('email');
+
         if (id) {
-          // Remove o prefixo "secure_token_" antes de salvar o ID
-          const idSemPrefixo = id.replace('secure_token_', '');
+          const idSemPrefixo = id.replace("secure_token_", "");
           setMotoristaId(idSemPrefixo);
         }
+
+        const response = await axiosInstance.get('/api/motorista');
+        const motoristaData = response.data.find((m: Motorista) => m.email === email);
+
+        if (motoristaData) {
+          motoristaData.contas = motoristaData.contas || [];
+        }
       } catch (error) {
-        console.error('Erro ao recuperar o ID do motorista:', error);
+        console.error("Erro ao recuperar o ID do motorista:", error);
       }
     };
 
@@ -40,44 +60,20 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    const client = new Client({
-      brokerURL: 'https://176b-200-238-97-165.ngrok-free.app/ws',
-      onConnect: () => {
-        console.log('Conectado ao WebSocket');
-        client.subscribe(`/topic/solicitar-viagem/${motoristaId}`, (message) => {
-          const data = JSON.parse(message.body);
-          setRideRequest(data);
-        });
-      },
-      onDisconnect: () => console.log('Desconectado do WebSocket'),
-      onStompError: (error) => console.error('Erro no STOMP:', error),
-    });
-
-    client.activate();
-    clientRef.current = client;
-
-    return () => {
-      client.deactivate();
-    };
-  }, [motoristaId]);
-
-
-  //validação para evitar conexões desnecessárias 
-  // enquanto o motoristaId ainda é null
-  useEffect(() => {
     if (!motoristaId) return;
 
+    const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
     const client = new Client({
-      brokerURL: 'https://176b-200-238-97-165.ngrok-free.app/ws',
+      webSocketFactory: () => socket,
       onConnect: () => {
-        console.log('Conectado ao WebSocket');
-        client.subscribe(`/topic/solicitar-viagem/${motoristaId}`, (message) => {
+        console.log("Conectado ao WebSocket");
+        client.subscribe(`/topic/motorista/${motoristaId}`, (message) => {
           const data: RideRequest = JSON.parse(message.body);
           setRideRequest(data);
         });
       },
-      onDisconnect: () => console.log('Desconectado do WebSocket'),
-      onStompError: (error) => console.error('Erro no STOMP:', error),
+      onDisconnect: () => console.log("Desconectado do WebSocket"),
+      onStompError: (error) => console.error("Erro no STOMP:", error),
     });
 
     client.activate();
@@ -88,16 +84,29 @@ export default function Index() {
     };
   }, [motoristaId]);
 
+  const handleAcceptRide = async () => {
+    if (!rideRequest || !motoristaId || !contaForm) return;
 
-  const handleAcceptRide = () => {
-    if (clientRef.current && rideRequest) {
-      clientRef.current.publish({
-        destination: `/app/aceitar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId, status: 'Aceito' }),
-      });
+    try {
+      const response = await axiosInstance.post(
+        `/api/viagens/${rideRequest.idViagem}/aceitar`,
+        {
+          idMotorista: motoristaId,
+          idContaBancariaMotorista: 1,
+          statusViagem: contaForm.id,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
+      );
 
-      Alert.alert('Sucesso', 'Viagem aceita!');
+      Alert.alert("Sucesso", "Viagem aceita!");
       setRideRequest(null);
+    } catch (error) {
+      Alert.alert("Erro", "Falha ao aceitar a viagem.");
+      console.error("Erro ao aceitar viagem:", error);
     }
   };
 
@@ -105,43 +114,70 @@ export default function Index() {
     if (clientRef.current && rideRequest) {
       clientRef.current.publish({
         destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId, status: 'Recusado' }),
+        body: JSON.stringify({ motoristaId, status: "Recusado" }),
       });
 
-      Alert.alert('Rejeição', 'Viagem recusada.');
+      Alert.alert("Rejeição", "Viagem recusada.");
       setRideRequest(null);
     }
   };
 
-
   return (
     <View style={styles.container}>
-
-    //Pop-up de solicitação de viagem
-
       <Modal visible={!!rideRequest} transparent={true} animationType="slide">
         {rideRequest && (
           <View style={styles.modalContainer}>
-            <Text>Solicitação de viagem recebida!</Text>
-            <Text>Origem: {rideRequest.origem.lat}, {rideRequest.origem.lng}</Text>
-            <Text>Destino: {rideRequest.destino.lat}, {rideRequest.destino.lng}</Text>
-            <Text>Valor: R$ {rideRequest.valor.toFixed(2)}</Text>
-            <View style={styles.buttonContainer2}>
-              <Button title="Aceitar" onPress={handleAcceptRide} />
-              <Button title="Recusar" onPress={handleRejectRide} />
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Nova Solicitação de Viagem</Text>
+              </View>
+
+              <View style={styles.tripInfo}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Origem:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.origem}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Destino:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.destino}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Valor:</Text>
+                  <Text style={styles.infoValue}>R$ {rideRequest.valor.toFixed(2)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button
+                  onPress={handleRejectRide}
+                  style={styles.rejectButton}
+                >
+                  Recusar
+                </Button>
+
+                <Button
+                  onPress={handleAcceptRide}
+                  style={styles.acceptButton}
+                >
+                  Aceitar
+                </Button>
+
+              </View>
             </View>
           </View>
         )}
       </Modal>
 
-
       <View style={styles.imageContainer}>
         <Text style={styles.title}>Bem-vindo, Motorista!</Text>
-        {motoristaId ? <Text>ID do Motorista: {motoristaId}</Text> : <Text>Carregando...</Text>}
+        {motoristaId ? (
+          <Text>ID do Motorista: {motoristaId}</Text>
+        ) : (
+          <Text>Carregando...</Text>
+        )}
       </View>
-
-      <View style={styles.buttonContainer2}></View>
-      <BottomActiveFrete />
 
       <BottomBar screen="Home" />
     </View>
@@ -151,35 +187,92 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    paddingBottom: 60, // Adicionado para evitar sobreposição
+    backgroundColor: "white",
+    justifyContent: "center",
+    paddingBottom: 60,
   },
   imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-  },
-  buttonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 32,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 16,
   },
-  buttonContainer2: {
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 15,
+    width: '90%',
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 15,
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: 'center',
+  },
+  tripInfo: {
+    marginVertical: 15,
+  },
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    alignItems: 'center',
+    marginVertical: 8,
+    paddingHorizontal: 10,
+  },
+  infoLabel: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  infoValue: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: 10,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    gap: 10,
+  },
+  rejectButton: {
+    flex: 1,
+    backgroundColor: '#ff4444',
+    borderRadius: 8,
+    paddingVertical: 12,
+  },
+  acceptButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 12,
   },
 });
