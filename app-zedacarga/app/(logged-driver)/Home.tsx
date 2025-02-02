@@ -85,15 +85,15 @@ export default function Index() {
   }, [motoristaId]);
 
   const handleAcceptRide = async () => {
-    if (!rideRequest || !motoristaId || !contaForm) return;
+    if (!rideRequest || !motoristaId || !contaForm ) return;
 
     try {
       const response = await axiosInstance.post(
         `/api/viagens/${rideRequest.idViagem}/aceitar`,
         {
           idMotorista: motoristaId,
-          idContaBancariaMotorista: 1,
-          statusViagem: contaForm.id,
+          idContaBancariaMotorista: contaForm.id,
+          statusViagem: "ACEITO",
         },
         {
           headers: {
