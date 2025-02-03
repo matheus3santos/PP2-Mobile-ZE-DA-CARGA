@@ -52,6 +52,10 @@ export default function Index() {
 
         if (motoristaData) {
           motoristaData.contas = motoristaData.contas || [];
+
+          if (motoristaData.contas.length > 0) {
+            setContaForm({ id: motoristaData.contas[0].id }); // 🚀 Aqui garante que temos uma conta
+          }
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
@@ -89,17 +93,22 @@ export default function Index() {
   const handleAcceptRide = async () => {
     if (!rideRequest || !motoristaId || !contaForm) return;
 
+    const params = {
+      statusViagem: "ACEITO",
+      idMotorista: parseInt(motoristaId),
+      idContaBancariaMotorista: contaForm.id,
+    };
+
+    console.log("🚀 Enviando requisição com params:", params);
+
     try {
-      const response = await axiosInstance.post(
-        `/api/viagens/${rideRequest.idViagem}/status`,
+      const response = await axiosInstance.put(
+        `https://eac7-200-238-97-165.ngrok-free.app/api/viagem/${rideRequest.idViagem}/status`,
+        null, // O corpo da requisição é null, pois os parâmetros são enviados como query params
         {
-          idMotorista: motoristaId,
-          idContaBancariaMotorista: contaForm.id,
-          statusViagem: "ACEITO",
-        },
-        {
+          params,
           headers: {
-            "Content-Type": "application/json",
+            "accept": "application/hal+json", // Adicionando o header accept
           }
         }
       );
@@ -115,7 +124,7 @@ export default function Index() {
           destino: JSON.stringify(rideRequest.destino),
         },
       });
-      
+
     } catch (error) {
       Alert.alert("Erro", "Falha ao aceitar a viagem.");
       console.error("Erro ao aceitar viagem:", error);
@@ -184,8 +193,11 @@ export default function Index() {
 
       <View style={styles.imageContainer}>
         <Text style={styles.title}>Bem-vindo, Motorista!</Text>
+        <Text>ID do Motorista: {contaForm.id}</Text>
+
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>
+
         ) : (
           <Text>Carregando...</Text>
         )}
