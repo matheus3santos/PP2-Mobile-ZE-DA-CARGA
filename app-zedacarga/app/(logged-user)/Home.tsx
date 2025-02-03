@@ -133,16 +133,13 @@ export default function Home() {
     if (!rideRequest || !clienteId || !driverMethod) return;
 
     try {
-      const { idViagem } = rideRequest;
-      const response = await axiosInstance.put(
-        `/api/viagem/${idViagem}/status`,
-        null,
+      const response = await axiosInstance.post(
+        `/api/viagem/${rideRequest.idViagem}/status`,
         {
-          params: {
-            statusViagem: "ACEITO",
-            idMotorista: driverMethod, // driverMethod should be the ID of the driver
-            idContaBancariaMotorista: driverMethod, // Assuming the same ID for both (Motorista and ContaBancaria)
-          },
+          idMotorista: clienteId,
+          statusViagem: "ACEITO",
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
@@ -157,51 +154,96 @@ export default function Home() {
     }
   };
 
-  const handleRejectRide = async () => {
-    if (!rideRequest || !clienteId || !driverMethod) return;
-
-    try {
-      const { idViagem } = rideRequest;
-      const response = await axiosInstance.put(
-        `/api/viagem/${idViagem}/status`,
-        null,
-        {
-          params: {
-            statusViagem: "RECUSADO",
-            idMotorista: driverMethod,
-            idContaBancariaMotorista: driverMethod, // Again, assuming this
-          },
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  const handleRejectRide = () => {
+    if (clientRef.current && rideRequest) {
+      clientRef.current.publish({
+        destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
+        body: JSON.stringify({ motoristaId: clienteId, status: "Recusado" }),
+      });
 
       Alert.alert("Rejeição", "Viagem recusada.");
       setRideRequest(null); // Clear ride request after rejecting
-    } catch (error) {
-      Alert.alert("Erro", "Falha ao recusar a viagem.");
-      console.error("Erro ao recusar viagem:", error);
     }
   };
 
-  // Renders your layout
+  const handleSelectDestination = (data, details) => {
+    if (details?.geometry?.location) {
+      setDestination({
+        latitude: details.geometry.location.lat,
+        longitude: details.geometry.location.lng,
+      });
+      setModalVisible(false);
+      setPaymentModalVisible(true);
+    }
+  };
+
+  const calculatePrice = (distance: number) => {
+    const pricePerKm = 2.5; // Tarifa por km
+    setPrice(distance * pricePerKm);
+  };
+
+  const handleRequestRide = async () => {
+    if (
+      !origin ||
+      !destination ||
+      !paymentMethod ||
+      !driverMethod ||
+      !clienteId
+    ) {
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos antes de solicitar a viagem."
+      );
+      return;
+    }
+
+    const origem = `${origin.latitude},${origin.longitude}`;
+    const destino = `${destination.latitude},${destination.longitude}`;
+
+    try {
+      const url = `/api/viagem/cliente/${clienteId}/cartao/${paymentMethod}/motorista/${driverMethod}?clienteId=${clienteId}&cartaoClienteId=${paymentMethod}&motoristaId=${driverMethod}`;
+
+      const response = await axiosInstance.post(url, {
+        origem,
+        destino,
+        valor: 30,
+      });
+
+      Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
+      console.log("Resposta da API:", response.data);
+
+      // Reset states
+      setPaymentModalVisible(false);
+    } catch (error) {
+      console.error(
+        "Erro ao solicitar viagem:",
+        error.response?.data || error.message
+      );
+      Alert.alert("Erro", "Não foi possível solicitar a viagem.");
+    }
+  };
+
+  const handleCancelRide = () => {
+    // Reseta os estados relacionados à viagem
+    setOrigin(null);
+    setDestination(null);
+    setDistance(0);
+    setPrice(0);
+    setPaymentMethod(null);
+    setPaymentModalVisible(false); // Fecha o modal
+  };
+
   return (
     <View style={styles.container}>
       {/* MapView, Modal, Buttons and other content */}
-      {/* Handle the Accept and Reject buttons */}
-      {rideRequest && (
-        <View style={styles.content}>
-          <Button onPress={handleAcceptRide}>Aceitar Viagem</Button>
-          <Button onPress={handleRejectRide}>Recusar Viagem</Button>
-        </View>
-      )}
+      {/* Here is the rest of your layout */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  map: { ...StyleSheet.absoluteFillObject },
   content: { position: "absolute", bottom: 150, alignSelf: "center" },
   button: { marginVertical: 8, width: 200 },
   selectedButton: { backgroundColor: "#007AFF" },
