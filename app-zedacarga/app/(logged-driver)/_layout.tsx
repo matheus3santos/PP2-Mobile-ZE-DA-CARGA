@@ -128,6 +128,17 @@ function RootLayoutNav() {
           }}
         />
 
+        <Stack.Screen
+          name="MapRide"
+          options={{
+            title: 'MapRide',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
+
+
+
       </Stack>
 
     </ThemeProvider>

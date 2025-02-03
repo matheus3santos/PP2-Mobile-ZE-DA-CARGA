@@ -10,6 +10,10 @@ import { GOOGLE_MAPS_API_KEY } from '../../env';
 import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import axiosInstance from 'app/config/axiosUrlConfig';
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+
+
 
 
 
@@ -42,7 +46,8 @@ export default function Home() {
   const [drivers, setDrivers] = useState<Motorista[]>([]);
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [driverMethod, setDriverMethod] = useState<string | null>(null);
-
+  const [rideRequest, setRideRequest] = useState<any | null>(null); // Adding rideRequest state for the incoming ride data
+  const clientRef = useRef<Client | null>(null); // Ref for STOMP client
 
 
 
@@ -52,7 +57,7 @@ export default function Home() {
     const fetchData = async () => {
       // Location permissions
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
+      if (status === "granted") {
         const location = await Location.getCurrentPositionAsync();
         setUserLocation({
           latitude: location.coords.latitude,
@@ -65,37 +70,97 @@ export default function Home() {
       }
 
       // Fetch client ID and cards
-      const email = await SecureStore.getItemAsync('email');
+      const email = await SecureStore.getItemAsync("email");
       if (!email) return;
 
       try {
-        const response = await axiosInstance.get('/api/cliente');
-        const clienteData = response.data.find((cliente: any) => cliente.email === email);
+        const response = await axiosInstance.get("/api/cliente");
+        const clienteData = response.data.find(
+          (cliente: any) => cliente.email === email
+        );
         setClienteId(clienteData?.id || null);
 
         if (clienteData?.id) {
-          const cardsResponse = await axiosInstance.get(`/api/cliente/cartoes/${clienteData.id}`);
-          setCards(Array.isArray(cardsResponse.data) ? cardsResponse.data : [cardsResponse.data]);
+          const cardsResponse = await axiosInstance.get(
+            `/api/cliente/cartoes/${clienteData.id}`
+          );
+          setCards(
+            Array.isArray(cardsResponse.data)
+              ? cardsResponse.data
+              : [cardsResponse.data]
+          );
 
           // Fetch drivers
-          const driversResponse = await axiosInstance.get('/api/motorista');
+          const driversResponse = await axiosInstance.get("/api/motorista");
           setDrivers(driversResponse.data);
         }
       } catch (e) {
-        console.error('Erro ao buscar dados:', e);
+        console.error("Erro ao buscar dados:", e);
       }
     };
 
     fetchData();
   }, []);
 
-  const handleCenterUserLocation = () => {
-    if (userLocation) {
-      mapRef.current?.animateToRegion({
-        ...userLocation,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
+  useEffect(() => {
+    if (!clienteId) return;
+
+    const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
+    const client = new Client({
+      webSocketFactory: () => socket,
+      onConnect: () => {
+        console.log("Conectado ao WebSocket");
+        client.subscribe(`/topic/cliente/${clienteId}`, (message) => {
+          const data = JSON.parse(message.body);
+          setRideRequest(data); // Store incoming ride request
+        });
+      },
+      onDisconnect: () => console.log("Desconectado do WebSocket"),
+      onStompError: (error) => console.error("Erro no STOMP:", error),
+    });
+
+    client.activate();
+    clientRef.current = client;
+
+    return () => {
+      client.deactivate();
+    };
+  }, [clienteId]);
+
+  const handleAcceptRide = async () => {
+    if (!rideRequest || !clienteId || !driverMethod) return;
+
+    try {
+      const response = await axiosInstance.post(
+        `/api/viagens/${rideRequest.idViagem}/aceitar`,
+        {
+          idMotorista: clienteId,
+          statusViagem: "ACEITO",
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Alert.alert("Sucesso", "Viagem aceita!");
+      setRideRequest(null); // Clear ride request after accepting
+    } catch (error) {
+      Alert.alert("Erro", "Falha ao aceitar a viagem.");
+      console.error("Erro ao aceitar viagem:", error);
+    }
+  };
+
+  const handleRejectRide = () => {
+    if (clientRef.current && rideRequest) {
+      clientRef.current.publish({
+        destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
+        body: JSON.stringify({ motoristaId: clienteId, status: "Recusado" }),
       });
+
+      Alert.alert("Rejeição", "Viagem recusada.");
+      setRideRequest(null); // Clear ride request after rejecting
     }
   };
 
@@ -115,11 +180,18 @@ export default function Home() {
     setPrice(distance * pricePerKm);
   };
 
-
-
   const handleRequestRide = async () => {
-    if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
-      Alert.alert('Erro', 'Preencha todos os campos antes de solicitar a viagem.');
+    if (
+      !origin ||
+      !destination ||
+      !paymentMethod ||
+      !driverMethod ||
+      !clienteId
+    ) {
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos antes de solicitar a viagem."
+      );
       return;
     }
 
@@ -135,17 +207,19 @@ export default function Home() {
         valor: 30,
       });
 
-      Alert.alert('Sucesso', 'Viagem solicitada com sucesso!');
-      console.log('Resposta da API:', response.data);
+      Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
+      console.log("Resposta da API:", response.data);
 
       // Reset states
       setPaymentModalVisible(false);
     } catch (error) {
-      console.error('Erro ao solicitar viagem:', error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível solicitar a viagem.');
+      console.error(
+        "Erro ao solicitar viagem:",
+        error.response?.data || error.message
+      );
+      Alert.alert("Erro", "Não foi possível solicitar a viagem.");
     }
   };
-
 
   const handleCancelRide = () => {
     // Reseta os estados relacionados à viagem
@@ -199,9 +273,9 @@ export default function Home() {
       </MapView>
 
       <View style={styles.content}>
-        <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
+        {/* <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
           Centralizar Localização
-        </Button>
+        </Button> */}
         <Button theme="blue" onPress={() => setModalVisible(true)} style={styles.button}>
           Definir Destino
         </Button>

@@ -7,6 +7,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import axiosInstance from 'app/config/axiosUrlConfig';
 import { Button } from "tamagui";
+import { useRouter } from 'expo-router';
 
 interface ContaBancaria {
   id: string;
@@ -33,6 +34,7 @@ export default function Index() {
   const [contaForm, setContaForm] = useState<ContaBancaria>({
     id: '',
   });
+  const router = useRouter();
 
   useEffect(() => {
     const getMotoristaId = async () => {
@@ -85,11 +87,11 @@ export default function Index() {
   }, [motoristaId]);
 
   const handleAcceptRide = async () => {
-    if (!rideRequest || !motoristaId || !contaForm ) return;
+    if (!rideRequest || !motoristaId || !contaForm) return;
 
     try {
       const response = await axiosInstance.post(
-        `/api/viagens/${rideRequest.idViagem}/aceitar`,
+        `/api/viagens/${rideRequest.idViagem}/status`,
         {
           idMotorista: motoristaId,
           idContaBancariaMotorista: contaForm.id,
@@ -104,6 +106,16 @@ export default function Index() {
 
       Alert.alert("Sucesso", "Viagem aceita!");
       setRideRequest(null);
+
+      // Redirecionar para a tela MapRide com as coordenadas de origem e destino
+      router.push({
+        pathname: '/MapRide',
+        params: {
+          origem: JSON.stringify(rideRequest.origem),
+          destino: JSON.stringify(rideRequest.destino),
+        },
+      });
+      
     } catch (error) {
       Alert.alert("Erro", "Falha ao aceitar a viagem.");
       console.error("Erro ao aceitar viagem:", error);
