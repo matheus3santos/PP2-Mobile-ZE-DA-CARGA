@@ -96,20 +96,23 @@ export default function Index() {
     if (!rideRequest || !motoristaId || !contaForm) return;
 
     try {
+      console.log("Enviando requisição de aceitação da viagem:", {
+        idViagem: rideRequest.idViagem,
+        motoristaId,
+        contaBancariaId: contaForm.id,
+      });
+
       const response = await axiosInstance.put(
-        `/api/viagens/${rideRequest.idViagem}/status`,
-        null,
+        `/api/viagem/${rideRequest.idViagem}/motorista/${motoristaId}/contaBancariaMotorista/${contaForm.id}/status`,
+        { statusViagem: "ACEITO" }, // Corpo da requisição
         {
-          params: {
-            statusViagem: "ACEITO",
-            idMotorista: motoristaId,
-            idContaBancariaMotorista: contaForm.id,
-          },
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
+
+      console.log("Resposta da requisição de aceitação:", response);
 
       Alert.alert("Sucesso", "Viagem aceita!");
       setRideRequest(null);
@@ -129,10 +132,17 @@ export default function Index() {
 
   const handleRejectRide = () => {
     if (clientRef.current && rideRequest) {
+      console.log("Enviando requisição de rejeição da viagem:", {
+        clienteId: rideRequest.clienteId,
+        motoristaId,
+      });
+
       clientRef.current.publish({
         destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
         body: JSON.stringify({ motoristaId, status: "Recusado" }),
       });
+
+      console.log("Requisição de rejeição enviada com sucesso.");
 
       Alert.alert("Rejeição", "Viagem recusada.");
       setRideRequest(null);
