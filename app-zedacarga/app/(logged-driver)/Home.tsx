@@ -20,10 +20,11 @@ interface Motorista {
 }
 
 interface RideRequest {
-  idViagem: number;
+  viagemId: number;
   origem: string;
   destino: string;
   valor: number;
+  mensagem: string;
   clienteId: number;
 }
 
@@ -97,13 +98,13 @@ export default function Index() {
 
     try {
       console.log("Enviando requisição de aceitação da viagem:", {
-        idViagem: rideRequest.idViagem,
+        viagemId: rideRequest.viagemId,
         motoristaId,
         contaBancariaId: contaForm.id,
       });
 
       const response = await axiosInstance.put(
-        `/api/viagem/${rideRequest.idViagem}/motorista/${motoristaId}/contaBancariaMotorista/${contaForm.id}/status`,
+        `/api/viagem/${rideRequest.viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaForm.id}/status`,
         { statusViagem: "ACEITO" }, // Corpo da requisição
         {
           headers: {
@@ -139,7 +140,7 @@ export default function Index() {
 
       clientRef.current.publish({
         destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId, status: "Recusado" }),
+        body: JSON.stringify({ motoristaId, status: "RECUSADO" }),
       });
 
       console.log("Requisição de rejeição enviada com sucesso.");
