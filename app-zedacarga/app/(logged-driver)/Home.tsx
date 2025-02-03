@@ -69,15 +69,19 @@ export default function Index() {
     const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      onConnect: () => {
-        console.log("Conectado ao WebSocket");
+      onConnect: (frame) => {
+        console.log("Conectado ao WebSocket:", frame);
         client.subscribe(`/topic/motorista/${motoristaId}`, (message) => {
           const data: RideRequest = JSON.parse(message.body);
           setRideRequest(data);
         });
       },
-      onDisconnect: () => console.log("Desconectado do WebSocket"),
-      onStompError: (error) => console.error("Erro no STOMP:", error),
+      onDisconnect: () => {
+        console.log("Desconectado do WebSocket");
+      },
+      onStompError: (error) => {
+        console.error("Erro no STOMP:", error);
+      },
     });
 
     client.activate();
@@ -94,7 +98,7 @@ export default function Index() {
     try {
       const response = await axiosInstance.put(
         `/api/viagens/${rideRequest.idViagem}/status`,
-        null, // O corpo da requisição é null, pois os parâmetros são enviados como query params
+        null,
         {
           params: {
             statusViagem: "ACEITO",
@@ -110,7 +114,6 @@ export default function Index() {
       Alert.alert("Sucesso", "Viagem aceita!");
       setRideRequest(null);
 
-      // Redirecionar para a tela MapRide com as coordenadas de origem e destino
       router.push({
         pathname: "/MapRide",
         params: {
