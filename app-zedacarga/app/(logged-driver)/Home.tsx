@@ -5,12 +5,12 @@ import BottomActiveFrete from "components/BottomActiveFrete";
 import * as SecureStore from "expo-secure-store";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import axiosInstance from 'app/config/axiosUrlConfig';
+import axiosInstance from "app/config/axiosUrlConfig";
 import { Button } from "tamagui";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 
 interface ContaBancaria {
-  id: string;
+  id: number;
 }
 
 interface Motorista {
@@ -20,19 +20,27 @@ interface Motorista {
 }
 
 interface RideRequest {
-  idViagem: number;
+  viagemId: number;
   origem: string;
   destino: string;
   valor: number;
+  mensagem: string;
   clienteId: number;
 }
 
 export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
-  const [rideRequest, setRideRequest] = useState<RideRequest | null>(null);
+  const [rideRequest, setRideRequest] = useState<RideRequest>({
+    viagemId: 54,
+    origem: "-8.203120700000001,-34.9188215",
+    destino: "-8.1733608,-34.9423933",
+    valor: 30.0,
+    mensagem: "Teste de mensagem",
+    clienteId: 2,
+  });
   const clientRef = useRef<Client | null>(null);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
-    id: '',
+    id: 2,
   });
   const router = useRouter();
 
@@ -40,22 +48,20 @@ export default function Index() {
     const getMotoristaId = async () => {
       try {
         const id = await SecureStore.getItemAsync("token");
-        const email = await SecureStore.getItemAsync('email');
+        const email = await SecureStore.getItemAsync("email");
 
         if (id) {
           const idSemPrefixo = id.replace("secure_token_", "");
           setMotoristaId(idSemPrefixo);
         }
 
-        const response = await axiosInstance.get('/api/motorista');
-        const motoristaData = response.data.find((m: Motorista) => m.email === email);
+        const response = await axiosInstance.get("/api/motorista");
+        const motoristaData = response.data.find(
+          (m: Motorista) => m.email === email
+        );
 
         if (motoristaData) {
           motoristaData.contas = motoristaData.contas || [];
-
-          if (motoristaData.contas.length > 0) {
-            setContaForm({ id: motoristaData.contas[0].id }); // 🚀 Aqui garante que temos uma conta
-          }
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
@@ -71,15 +77,19 @@ export default function Index() {
     const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
     const client = new Client({
       webSocketFactory: () => socket,
-      onConnect: () => {
-        console.log("Conectado ao WebSocket");
+      onConnect: (frame) => {
+        console.log("Conectado ao WebSocket:", frame);
         client.subscribe(`/topic/motorista/${motoristaId}`, (message) => {
           const data: RideRequest = JSON.parse(message.body);
           setRideRequest(data);
         });
       },
-      onDisconnect: () => console.log("Desconectado do WebSocket"),
-      onStompError: (error) => console.error("Erro no STOMP:", error),
+      onDisconnect: () => {
+        console.log("Desconectado do WebSocket");
+      },
+      onStompError: (error) => {
+        console.error("Erro no STOMP:", error);
+      },
     });
 
     client.activate();
@@ -93,50 +103,58 @@ export default function Index() {
   const handleAcceptRide = async () => {
     if (!rideRequest || !motoristaId || !contaForm) return;
 
-    const params = {
-      statusViagem: "ACEITO",
-      idMotorista: parseInt(motoristaId),
-      idContaBancariaMotorista: contaForm.id,
-    };
-
-    console.log("🚀 Enviando requisição com params:", params);
-
     try {
+      const url = `/api/viagem/${rideRequest.viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaForm.id}/status`;
+
+      console.log("URL da requisição:", url);
+      console.log("Enviando requisição de aceitação da viagem:", {
+        viagemId: rideRequest.viagemId,
+        motoristaId,
+        contaBancariaMotoristaId: contaForm.id,
+        statusViagem: "ACEITO",
+      });
+
       const response = await axiosInstance.put(
-        `https://eac7-200-238-97-165.ngrok-free.app/api/viagem/${rideRequest.idViagem}/status`,
-        null, // O corpo da requisição é null, pois os parâmetros são enviados como query params
+        url,
+        { statusViagem: "ACEITO" }, // Corpo da requisição
         {
-          params,
           headers: {
-            "accept": "application/hal+json", // Adicionando o header accept
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      Alert.alert("Sucesso", "Viagem aceita!");
-      setRideRequest(null);
+      console.log("Resposta da requisição de aceitação:", response);
 
-      // Redirecionar para a tela MapRide com as coordenadas de origem e destino
+      Alert.alert("Sucesso", "Viagem aceita!");
+
       router.push({
-        pathname: '/MapRide',
+        pathname: "/MapRide",
         params: {
           origem: JSON.stringify(rideRequest.origem),
           destino: JSON.stringify(rideRequest.destino),
         },
       });
-
     } catch (error) {
       Alert.alert("Erro", "Falha ao aceitar a viagem.");
       console.error("Erro ao aceitar viagem:", error);
     }
   };
 
+
   const handleRejectRide = () => {
     if (clientRef.current && rideRequest) {
+      console.log("Enviando requisição de rejeição da viagem:", {
+        clienteId: rideRequest.clienteId,
+        motoristaId,
+      });
+
       clientRef.current.publish({
         destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId, status: "Recusado" }),
+        body: JSON.stringify({ motoristaId, status: "RECUSADO" }),
       });
+
+      console.log("Requisição de rejeição enviada com sucesso.");
 
       Alert.alert("Rejeição", "Viagem recusada.");
       setRideRequest(null);
@@ -150,10 +168,16 @@ export default function Index() {
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Nova Solicitação de Viagem</Text>
+                <Text style={styles.modalTitle}>
+                  Nova Solicitação de Viagem
+                </Text>
               </View>
 
               <View style={styles.tripInfo}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>ID:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.viagemId}</Text>
+                </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Origem:</Text>
                   <Text style={styles.infoValue}>{rideRequest.origem}</Text>
@@ -166,25 +190,20 @@ export default function Index() {
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Valor:</Text>
-                  <Text style={styles.infoValue}>R$ {rideRequest.valor.toFixed(2)}</Text>
+                  <Text style={styles.infoValue}>
+                    R$ {rideRequest.valor.toFixed(2)}
+                  </Text>
                 </View>
               </View>
 
               <View style={styles.buttonContainer}>
-                <Button
-                  onPress={handleRejectRide}
-                  style={styles.rejectButton}
-                >
+                <Button onPress={handleRejectRide} style={styles.rejectButton}>
                   Recusar
                 </Button>
 
-                <Button
-                  onPress={handleAcceptRide}
-                  style={styles.acceptButton}
-                >
+                <Button onPress={handleAcceptRide} style={styles.acceptButton}>
                   Aceitar
                 </Button>
-
               </View>
             </View>
           </View>
@@ -193,11 +212,8 @@ export default function Index() {
 
       <View style={styles.imageContainer}>
         <Text style={styles.title}>Bem-vindo, Motorista!</Text>
-        <Text>ID do Motorista: {contaForm.id}</Text>
-
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>
-
         ) : (
           <Text>Carregando...</Text>
         )}
@@ -235,7 +251,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
     borderRadius: 15,
-    width: '90%',
+    width: "90%",
     padding: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -248,7 +264,7 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     paddingBottom: 15,
     marginBottom: 15,
   },
@@ -256,29 +272,29 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    textAlign: 'center',
+    textAlign: "center",
   },
   tripInfo: {
     marginVertical: 15,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginVertical: 8,
     paddingHorizontal: 10,
   },
   infoLabel: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   infoValue: {
     fontSize: 16,
-    color: '#333',
-    fontWeight: '600',
+    color: "#333",
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'right',
+    textAlign: "right",
     marginLeft: 10,
   },
   buttonContainer: {
@@ -289,13 +305,13 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     flex: 1,
-    backgroundColor: '#ff4444',
+    backgroundColor: "#ff4444",
     borderRadius: 8,
     paddingVertical: 12,
   },
   acceptButton: {
     flex: 1,
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     borderRadius: 8,
     paddingVertical: 12,
   },

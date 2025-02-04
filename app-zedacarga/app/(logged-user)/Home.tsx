@@ -132,9 +132,9 @@ export default function Home() {
 
     try {
       const response = await axiosInstance.post(
-        `/api/viagem/${rideRequest.idViagem}/aceitar`,
+        `/api/viagem/${rideRequest.viagemId}/aceitar`,
         {
-          idMotorista: clienteId,
+          motoristaId: clienteId,
           statusViagem: "ACEITO",
         },
         {
