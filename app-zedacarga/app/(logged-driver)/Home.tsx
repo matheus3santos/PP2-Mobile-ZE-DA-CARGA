@@ -1,3 +1,4 @@
+//Motorista
 import React, { useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Text, Alert, Modal } from "react-native";
 import BottomBar from "components/BottomBar";
@@ -8,9 +9,13 @@ import SockJS from "sockjs-client";
 import axiosInstance from "app/config/axiosUrlConfig";
 import { Button } from "tamagui";
 import { useRouter } from "expo-router";
+import { useRideWebSocket } from '../../websocket/useRideWebSocket';
+import { styles } from '../../styles/HomeDriver.style';
+
+
 
 interface ContaBancaria {
-  id: number;
+  id?: number;
 }
 
 interface Motorista {
@@ -19,28 +24,25 @@ interface Motorista {
   contas?: ContaBancaria[];
 }
 
-interface RideRequest {
-  viagemId: number;
-  origem: string;
-  destino: string;
-  valor: number;
-  mensagem: string;
-  clienteId: number;
-}
+// interface RideRequest {
+//   viagemId: number;
+//   origem: string;
+//   destino: string;
+//   valor: number;
+//   mensagem: string;
+//   clienteId: number;
+// }
 
 export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
-  const [rideRequest, setRideRequest] = useState<RideRequest>({
-    viagemId: 54,
-    origem: "-8.203120700000001,-34.9188215",
-    destino: "-8.1733608,-34.9423933",
-    valor: 30.0,
-    mensagem: "Teste de mensagem",
-    clienteId: 2,
+  const { rideRequest, acceptRide, rejectRide } = useRideWebSocket({
+    userId: motoristaId,
+    userType: 'motorista'
   });
+
   const clientRef = useRef<Client | null>(null);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
-    id: 2,
+    id: 0,
   });
   const router = useRouter();
 
@@ -71,94 +73,14 @@ export default function Index() {
     getMotoristaId();
   }, []);
 
-  useEffect(() => {
-    if (!motoristaId) return;
-
-    const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
-    const client = new Client({
-      webSocketFactory: () => socket,
-      onConnect: (frame) => {
-        console.log("Conectado ao WebSocket:", frame);
-        client.subscribe(`/topic/motorista/${motoristaId}`, (message) => {
-          const data: RideRequest = JSON.parse(message.body);
-          setRideRequest(data);
-        });
-      },
-      onDisconnect: () => {
-        console.log("Desconectado do WebSocket");
-      },
-      onStompError: (error) => {
-        console.error("Erro no STOMP:", error);
-      },
-    });
-
-    client.activate();
-    clientRef.current = client;
-
-    return () => {
-      client.deactivate();
-    };
-  }, [motoristaId]);
-
-  const handleAcceptRide = async () => {
-    if (!rideRequest || !motoristaId || !contaForm) return;
-
-    try {
-      const url = `/api/viagem/${rideRequest.viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaForm.id}/status`;
-
-      console.log("URL da requisição:", url);
-      console.log("Enviando requisição de aceitação da viagem:", {
-        viagemId: rideRequest.viagemId,
-        motoristaId,
-        contaBancariaMotoristaId: contaForm.id,
-        statusViagem: "ACEITO",
-      });
-
-      const response = await axiosInstance.put(
-        url,
-        { statusViagem: "ACEITO" }, // Corpo da requisição
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Resposta da requisição de aceitação:", response);
-
-      Alert.alert("Sucesso", "Viagem aceita!");
-
-      router.push({
-        pathname: "/MapRide",
-        params: {
-          origem: JSON.stringify(rideRequest.origem),
-          destino: JSON.stringify(rideRequest.destino),
-        },
-      });
-    } catch (error) {
-      Alert.alert("Erro", "Falha ao aceitar a viagem.");
-      console.error("Erro ao aceitar viagem:", error);
-    }
+  const handleAcceptRide = () => {
+    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
+    acceptRide(rideRequest.viagemId, motoristaId, contaForm.id);
   };
 
-
   const handleRejectRide = () => {
-    if (clientRef.current && rideRequest) {
-      console.log("Enviando requisição de rejeição da viagem:", {
-        clienteId: rideRequest.clienteId,
-        motoristaId,
-      });
-
-      clientRef.current.publish({
-        destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId, status: "RECUSADO" }),
-      });
-
-      console.log("Requisição de rejeição enviada com sucesso.");
-
-      Alert.alert("Rejeição", "Viagem recusada.");
-      setRideRequest(null);
-    }
+    if (!rideRequest?.clienteId || !motoristaId) return;
+    rejectRide(rideRequest.clienteId, motoristaId);
   };
 
   return (
@@ -178,7 +100,7 @@ export default function Index() {
                   <Text style={styles.infoLabel}>ID:</Text>
                   <Text style={styles.infoValue}>{rideRequest.viagemId}</Text>
                 </View>
-                <View style={styles.infoRow}>
+                {/* <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Origem:</Text>
                   <Text style={styles.infoValue}>{rideRequest.origem}</Text>
                 </View>
@@ -186,7 +108,7 @@ export default function Index() {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Destino:</Text>
                   <Text style={styles.infoValue}>{rideRequest.destino}</Text>
-                </View>
+                </View> */}
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Valor:</Text>
@@ -223,96 +145,3 @@ export default function Index() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    justifyContent: "center",
-    paddingBottom: 60,
-  },
-  imageContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 16,
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 15,
-    width: "90%",
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalHeader: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingBottom: 15,
-    marginBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-  },
-  tripInfo: {
-    marginVertical: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 8,
-    paddingHorizontal: 10,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-  infoValue: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "600",
-    flex: 1,
-    textAlign: "right",
-    marginLeft: 10,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-    gap: 10,
-  },
-  rejectButton: {
-    flex: 1,
-    backgroundColor: "#ff4444",
-    borderRadius: 8,
-    paddingVertical: 12,
-  },
-  acceptButton: {
-    flex: 1,
-    backgroundColor: "#4CAF50",
-    borderRadius: 8,
-    paddingVertical: 12,
-  },
-});

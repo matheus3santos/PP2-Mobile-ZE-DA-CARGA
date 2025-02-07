@@ -1,3 +1,4 @@
+//Cliente
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, Select, Checkbox, XStack, YStack, Label } from 'tamagui';
 import { View, StyleSheet, Modal, Text, Dimensions, Alert } from 'react-native';
@@ -12,9 +13,9 @@ import * as SecureStore from 'expo-secure-store';
 import axiosInstance from 'app/config/axiosUrlConfig';
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-
-
-
+import { useRoute } from '@react-navigation/native';
+import { router } from 'expo-router'
+import { useRideWebSocket } from '../../websocket/useRideWebSocket';
 
 
 
@@ -33,6 +34,11 @@ interface Motorista {
 const { height } = Dimensions.get('window');
 
 export default function Home() {
+  const [clienteId, setClienteId] = useState<string | null>(null);
+  const { rideRequest } = useRideWebSocket({
+    userId: clienteId,
+    userType: 'cliente'
+  });
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [origin, setOrigin] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -44,14 +50,12 @@ export default function Home() {
   const [tempOriginInput, setTempOriginInput] = useState('');
   const [cards, setCards] = useState<Card[]>([]);
   const [drivers, setDrivers] = useState<Motorista[]>([]);
-  const [clienteId, setClienteId] = useState<string | null>(null);
   const [driverMethod, setDriverMethod] = useState<string | null>(null);
-  const [rideRequest, setRideRequest] = useState<any | null>(null); // Adding rideRequest state for the incoming ride data
   const clientRef = useRef<Client | null>(null); // Ref for STOMP client
-
-
-
   const mapRef = useRef<MapView>(null);
+
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,68 +105,6 @@ export default function Home() {
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (!clienteId) return;
-
-    const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
-    const client = new Client({
-      webSocketFactory: () => socket,
-      onConnect: () => {
-        console.log("Conectado ao WebSocket");
-        client.subscribe(`/topic/cliente/${clienteId}`, (message) => {
-          const data = JSON.parse(message.body);
-          setRideRequest(data); // Store incoming ride request
-        });
-      },
-      onDisconnect: () => console.log("Desconectado do WebSocket"),
-      onStompError: (error) => console.error("Erro no STOMP:", error),
-    });
-
-    client.activate();
-    clientRef.current = client;
-
-    return () => {
-      client.deactivate();
-    };
-  }, [clienteId]);
-
-  const handleAcceptRide = async () => {
-    if (!rideRequest || !clienteId || !driverMethod) return;
-
-    try {
-      const response = await axiosInstance.post(
-        `/api/viagem/${rideRequest.viagemId}/aceitar`,
-        {
-          motoristaId: clienteId,
-          statusViagem: "ACEITO",
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      Alert.alert("Sucesso", "Viagem aceita!");
-      setRideRequest(null); // Clear ride request after accepting
-    } catch (error) {
-      Alert.alert("Erro", "Falha ao aceitar a viagem.");
-      console.error("Erro ao aceitar viagem:", error);
-    }
-  };
-
-  const handleRejectRide = () => {
-    if (clientRef.current && rideRequest) {
-      clientRef.current.publish({
-        destination: `/app/recusar-viagem/${rideRequest.clienteId}`,
-        body: JSON.stringify({ motoristaId: clienteId, status: "Recusado" }),
-      });
-
-      Alert.alert("Rejeição", "Viagem recusada.");
-      setRideRequest(null); // Clear ride request after rejecting
-    }
-  };
 
   const handleSelectDestination = (data, details) => {
     if (details?.geometry?.location) {
