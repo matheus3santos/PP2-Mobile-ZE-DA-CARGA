@@ -18,7 +18,7 @@ export const useRideWebSocket = ({ userId, userType }: {
     useEffect(() => {
         if (!userId) return;
 
-        const socket = new SockJS("https://eac7-200-238-97-165.ngrok-free.app/ws");
+        const socket = new SockJS("http://3.136.103.206:8080/ws");
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
@@ -69,11 +69,18 @@ export const useRideWebSocket = ({ userId, userType }: {
     // Funções de ação
     const acceptRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
         try {
-            const response = await axiosInstance.put(
-                `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`,
-                { statusViagem: "ACEITO" },
-                { headers: { "Content-Type": "application/json" } }
-            );
+            const requestData = { statusViagem: "ACEITO" };
+            const url = `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`;
+
+            console.log("🚀 Enviando requisição para aceitar viagem:");
+            console.log("URL:", url);
+            console.log("Dados enviados:", requestData);
+
+            const response = await axiosInstance.put(url, requestData, {
+                headers: { "Content-Type": "application/json" },
+            });
+
+            console.log("✅ Resposta recebida:", response.data);
 
             if (response.status === 200) {
                 Alert.alert("Sucesso", "Viagem aceita!");
@@ -91,10 +98,11 @@ export const useRideWebSocket = ({ userId, userType }: {
                 });
             }
         } catch (error) {
+            console.error("❌ Erro ao aceitar viagem:", error);
             Alert.alert("Erro", "Falha ao aceitar a viagem.");
-            console.error("Erro ao aceitar viagem:", error);
         }
     };
+
 
     const rejectRide = (clienteId: number, motoristaId: string) => {
         if (!clientRef.current) return;

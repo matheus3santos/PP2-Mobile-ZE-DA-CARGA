@@ -10,7 +10,9 @@ import axiosInstance from "app/config/axiosUrlConfig";
 import { Button } from "tamagui";
 import { useRouter } from "expo-router";
 import { useRideWebSocket } from '../../websocket/useRideWebSocket';
+import { RideRequest } from '../../websocket/types';
 import { styles } from '../../styles/HomeDriver.style';
+
 
 
 
@@ -42,8 +44,21 @@ export default function Index() {
 
   const clientRef = useRef<Client | null>(null);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
-    id: 0,
+    id: 1,
   });
+
+  const [rideForm, setRideForm] = useState<RideRequest | null>({
+    viagemId: 0,
+    origem: "",
+    destino: "",
+    valor: 0,
+    mensagem: "",
+    clienteId: 0,
+  });
+
+
+
+
   const router = useRouter();
 
   useEffect(() => {
@@ -74,9 +89,26 @@ export default function Index() {
   }, []);
 
   const handleAcceptRide = () => {
-    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
+    console.log("🟢 Botão 'Aceitar' pressionado!");
+
+    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) {
+      console.warn("⚠️ Falha ao aceitar viagem: dados ausentes", {
+        viagemId: rideRequest?.viagemId,
+        motoristaId,
+        contaBancariaId: contaForm.id,
+      });
+      return;
+    }
+
+    console.log("🚀 Chamando acceptRide com os dados:", {
+      viagemId: rideRequest.viagemId,
+      motoristaId,
+      contaBancariaId: contaForm.id,
+    });
+
     acceptRide(rideRequest.viagemId, motoristaId, contaForm.id);
   };
+
 
   const handleRejectRide = () => {
     if (!rideRequest?.clienteId || !motoristaId) return;

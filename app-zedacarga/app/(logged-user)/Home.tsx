@@ -12,7 +12,6 @@ import 'react-native-get-random-values';
 import * as SecureStore from 'expo-secure-store';
 import axiosInstance from 'app/config/axiosUrlConfig';
 import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 import { useRoute } from '@react-navigation/native';
 import { router } from 'expo-router'
 import { useRideWebSocket } from '../../websocket/useRideWebSocket';
