@@ -122,17 +122,8 @@ export default function Home() {
   };
 
   const handleRequestRide = async () => {
-    if (
-      !origin ||
-      !destination ||
-      !paymentMethod ||
-      !driverMethod ||
-      !clienteId
-    ) {
-      Alert.alert(
-        "Erro",
-        "Preencha todos os campos antes de solicitar a viagem."
-      );
+    if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
+      Alert.alert("Erro", "Preencha todos os campos antes de solicitar a viagem.");
       return;
     }
 
@@ -148,19 +139,61 @@ export default function Home() {
         valor: 30,
       });
 
-      Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
-      console.log("Resposta da API:", response.data);
+      if (response.status === 201) {
+        console.log("🚀 Viagem criada, buscando o ID correto...");
 
-      // Reset states
-      setPaymentModalVisible(false);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 🔍 Buscar a viagem criada para pegar o `viagemId` correto
+        const viagensResponse = await axiosInstance.get(`/api/viagem`);
+        const viagens = viagensResponse.data;
+
+        // 🔎 Filtra a viagem com a mesma origem enviada
+        const viagemCriada = viagens
+          .filter((v: any) => v.origem === origem)
+          .sort((a: any, b: any) => b.id - a.id)[0]; // Pega a mais recente
+
+        if (!viagemCriada) {
+          console.error("❌ Nenhuma viagem encontrada para a origem:", origem);
+          Alert.alert("Erro", "Não foi possível recuperar a viagem.");
+          return;
+        }
+
+        console.log("✅ Viagem encontrada:", viagemCriada);
+        console.log("📡 Enviando para WebSocket:", viagemCriada.id);
+
+        // Envie todos os dados necessários via WebSocket
+        const mensagemWebSocket = {
+          viagemId: viagemCriada.id,
+          origem,
+          destino,
+          clienteId: Number(clienteId),
+          mensagem: "Nova solicitação de viagem"
+        };
+        console.log("📦 Dados sendo enviados via WebSocket:", mensagemWebSocket);
+
+
+
+        // 🔴 Envia o `viagemId` correto para o motorista via WebSocket
+        clientRef.current?.publish({
+          destination: `/app/nova-viagem/${driverMethod}`,
+          body: JSON.stringify({
+            viagemId: viagemCriada.id,
+            origem,
+            destino,
+          }),
+        });
+
+        Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
+      } else {
+        throw new Error("Falha ao criar viagem.");
+      }
     } catch (error) {
-      console.error(
-        "Erro ao solicitar viagem:",
-        error.response?.data || error.message
-      );
+      console.error("❌ Erro ao solicitar viagem:", error.response?.data || error.message);
       Alert.alert("Erro", "Não foi possível solicitar a viagem.");
     }
   };
+
 
   const handleCancelRide = () => {
     // Reseta os estados relacionados à viagem

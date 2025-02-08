@@ -26,7 +26,11 @@ export const useRideWebSocket = ({ userId, userType }: {
                 // Inscreve no tópico específico do usuário
                 client.subscribe(`/topic/${userType}/${userId}`, (message) => {
                     const data = JSON.parse(message.body);
-                    setRideRequest(data);
+                    console.log('WebSocket message received:', data); // Debug
+
+                    if (data.origem) {
+                        setRideRequest(data);
+                    }
                     handleRideStatusChange(data);
                 });
             },
@@ -104,17 +108,31 @@ export const useRideWebSocket = ({ userId, userType }: {
     };
 
 
-    const rejectRide = (clienteId: number, motoristaId: string) => {
-        if (!clientRef.current) return;
+    const rejectRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
+        try {
+            const requestData = { statusViagem: "RECUSADO" };
+            const url = `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`;
 
-        clientRef.current.publish({
-            destination: `/app/recusar-viagem/${clienteId}`,
-            body: JSON.stringify({ motoristaId, status: "RECUSADO" }),
-        });
+            console.log("🚀 Enviando requisição para recusar viagem:");
+            console.log("URL:", url);
+            console.log("Dados enviados:", requestData);
 
-        setRideRequest(null);
-        Alert.alert("Rejeição", "Viagem recusada.");
+            const response = await axiosInstance.put(url, requestData, {
+                headers: { "Content-Type": "application/json" },
+            });
+
+            console.log("✅ Resposta recebida:", response.data);
+
+            if (response.status === 200) {
+                Alert.alert("Rejeição", "Viagem recusada com sucesso.");
+                setRideRequest(null);
+            }
+        } catch (error) {
+            console.error("❌ Erro ao recusar viagem:", error);
+            Alert.alert("Erro", "Falha ao recusar a viagem.");
+        }
     };
+
 
     return {
         rideRequest,

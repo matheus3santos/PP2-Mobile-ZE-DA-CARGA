@@ -7,7 +7,7 @@ import * as SecureStore from "expo-secure-store";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import axiosInstance from "app/config/axiosUrlConfig";
-import { Button } from "tamagui";
+import { Button, H3 } from "tamagui";
 import { useRouter } from "expo-router";
 import { useRideWebSocket } from '../../websocket/useRideWebSocket';
 import { RideRequest } from '../../websocket/types';
@@ -26,17 +26,10 @@ interface Motorista {
   contas?: ContaBancaria[];
 }
 
-// interface RideRequest {
-//   viagemId: number;
-//   origem: string;
-//   destino: string;
-//   valor: number;
-//   mensagem: string;
-//   clienteId: number;
-// }
 
 export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Novo estado para controlar a visibilidade do modal
   const { rideRequest, acceptRide, rejectRide } = useRideWebSocket({
     userId: motoristaId,
     userType: 'motorista'
@@ -44,20 +37,8 @@ export default function Index() {
 
   const clientRef = useRef<Client | null>(null);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
-    id: 1,
+    id: 0,
   });
-
-  const [rideForm, setRideForm] = useState<RideRequest | null>({
-    viagemId: 0,
-    origem: "",
-    destino: "",
-    valor: 0,
-    mensagem: "",
-    clienteId: 0,
-  });
-
-
-
 
   const router = useRouter();
 
@@ -79,12 +60,16 @@ export default function Index() {
 
         if (motoristaData) {
           motoristaData.contas = motoristaData.contas || [];
+          // Se houver uma conta bancária associada, atualiza o estado
+
+          if (motoristaData.contas.length > 0) {
+            setContaForm({ id: motoristaData.contas[0].id || '' });
+          }
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
       }
     };
-
     getMotoristaId();
   }, []);
 
@@ -100,19 +85,18 @@ export default function Index() {
       return;
     }
 
-    console.log("🚀 Chamando acceptRide com os dados:", {
-      viagemId: rideRequest.viagemId,
-      motoristaId,
-      contaBancariaId: contaForm.id,
-    });
+    console.log("🚀 Aceitando viagem com ID:", rideRequest.viagemId);
 
-    acceptRide(rideRequest.viagemId, motoristaId, contaForm.id);
+    acceptRide(rideRequest.viagemId, motoristaId, Number(contaForm.id));
   };
 
 
+
   const handleRejectRide = () => {
-    if (!rideRequest?.clienteId || !motoristaId) return;
-    rejectRide(rideRequest.clienteId, motoristaId);
+    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
+    rejectRide(rideRequest.viagemId, motoristaId, contaForm.id);
+    Alert.alert("Rejeição", "Viagem recusada.");
+
   };
 
   return (
@@ -132,15 +116,21 @@ export default function Index() {
                   <Text style={styles.infoLabel}>ID:</Text>
                   <Text style={styles.infoValue}>{rideRequest.viagemId}</Text>
                 </View>
-                {/* <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Origem:</Text>
-                  <Text style={styles.infoValue}>{rideRequest.origem}</Text>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>ID:</Text>
+                  <Text style={styles.infoValue}>{rideRequest.mensagem}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Orige:</Text>
+                  <H3 style={styles.infoValue}>{rideRequest.origem}</H3>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Destino:</Text>
-                  <Text style={styles.infoValue}>{rideRequest.destino}</Text>
-                </View> */}
+                  <H3 style={styles.infoValue}>{rideRequest.destino}</H3>
+                </View>
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Valor:</Text>
@@ -166,8 +156,11 @@ export default function Index() {
 
       <View style={styles.imageContainer}>
         <Text style={styles.title}>Bem-vindo, Motorista!</Text>
+        <H3>Conta Bancária: {contaForm.id}</H3>
+
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>
+
         ) : (
           <Text>Carregando...</Text>
         )}
