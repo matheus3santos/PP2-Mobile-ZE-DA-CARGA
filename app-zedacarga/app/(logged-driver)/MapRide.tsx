@@ -15,7 +15,18 @@ const MapRide = () => {
 
   return (
     <View style={styles.container}>
-      teste
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: -23.55052,
+          longitude: -46.633308,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      >
+
+
+      </MapView>
     </View>
   );
 };

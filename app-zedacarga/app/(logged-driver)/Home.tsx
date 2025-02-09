@@ -24,7 +24,17 @@ interface Motorista {
   id?: number;
   email: string;
   contas?: ContaBancaria[];
+  viagens?: ViagemSolicitadas[];
 }
+interface ViagemSolicitadas {
+  id: number;
+  origem: string;
+  destino: string;
+  valor: number;
+  status: string;
+}
+
+
 
 
 export default function Index() {
@@ -39,6 +49,16 @@ export default function Index() {
   const [contaForm, setContaForm] = useState<ContaBancaria>({
     id: 0,
   });
+
+  const [viagens, setViagens] = useState<ViagemSolicitadas>({
+    id: 0,
+    origem: "",
+    destino: "",
+    valor: 0,
+    status: "",
+  }
+
+  );
 
   const router = useRouter();
 
@@ -65,6 +85,20 @@ export default function Index() {
           if (motoristaData.contas.length > 0) {
             setContaForm({ id: motoristaData.contas[0].id || '' });
           }
+
+          if (motoristaData.viagens.length > 0) {
+            setViagens({
+              id: motoristaData.viagens[0].id || 0,
+              origem: motoristaData.viagens[0].origem || '',
+              destino: motoristaData.viagens[0].destino || '',
+              valor: motoristaData.viagens[0].valor || 0,
+              status: motoristaData.viagens[0].status || ''
+            });
+          }
+
+
+
+
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
@@ -76,25 +110,26 @@ export default function Index() {
   const handleAcceptRide = () => {
     console.log("🟢 Botão 'Aceitar' pressionado!");
 
-    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) {
+    if (!viagens.id || !motoristaId || !contaForm.id) {
       console.warn("⚠️ Falha ao aceitar viagem: dados ausentes", {
-        viagemId: rideRequest?.viagemId,
+        viagemId: viagens.id,
         motoristaId,
         contaBancariaId: contaForm.id,
       });
       return;
     }
 
-    console.log("🚀 Aceitando viagem com ID:", rideRequest.viagemId);
+    console.log("🚀 Aceitando viagem com ID:", viagens.id);
 
-    acceptRide(rideRequest.viagemId, motoristaId, Number(contaForm.id));
+    acceptRide(viagens.id, motoristaId, Number(contaForm.id));
+
   };
 
 
 
   const handleRejectRide = () => {
-    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
-    rejectRide(rideRequest.viagemId, motoristaId, contaForm.id);
+    if (!viagens.id || !motoristaId || !contaForm.id) return;
+    rejectRide(viagens.id, motoristaId, contaForm.id);
     Alert.alert("Rejeição", "Viagem recusada.");
 
   };
@@ -112,18 +147,14 @@ export default function Index() {
               </View>
 
               <View style={styles.tripInfo}>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>ID:</Text>
-                  <Text style={styles.infoValue}>{rideRequest.viagemId}</Text>
-                </View>
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>ID:</Text>
-                  <Text style={styles.infoValue}>{rideRequest.mensagem}</Text>
+                  <Text style={styles.infoValue}>{viagens.id}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Orige:</Text>
+                  <Text style={styles.infoLabel}>Origem:</Text>
                   <H3 style={styles.infoValue}>{rideRequest.origem}</H3>
                 </View>
 

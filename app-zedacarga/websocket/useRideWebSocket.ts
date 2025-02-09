@@ -18,7 +18,8 @@ export const useRideWebSocket = ({ userId, userType }: {
     useEffect(() => {
         if (!userId) return;
 
-        const socket = new SockJS("http://3.136.103.206:8080/ws");
+        //const socket = new SockJS("http://3.136.103.206:8080/ws");
+        const socket = new SockJS("https://32c9-200-238-97-165.ngrok-free.app/ws");
         const client = new Client({
             webSocketFactory: () => socket,
             onConnect: () => {
@@ -88,6 +89,7 @@ export const useRideWebSocket = ({ userId, userType }: {
 
             if (response.status === 200) {
                 Alert.alert("Sucesso", "Viagem aceita!");
+                setRideRequest(null); // Fecha o modal após aceitar
                 router.push({
                     pathname: "/MapRide",
                     params: {
