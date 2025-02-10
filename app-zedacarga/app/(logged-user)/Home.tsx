@@ -34,7 +34,7 @@ const { height } = Dimensions.get('window');
 
 export default function Home() {
   const [clienteId, setClienteId] = useState<string | null>(null);
-  const { rideRequest } = useRideWebSocket({
+  const { rideRequest, requestRideClient } = useRideWebSocket({
     userId: clienteId,
     userType: 'cliente'
   });
@@ -121,78 +121,26 @@ export default function Home() {
     setPrice(distance * pricePerKm);
   };
 
-  const handleRequestRide = async () => {
-    if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
-      Alert.alert("Erro", "Preencha todos os campos antes de solicitar a viagem.");
+  const handleRequestRideClient = () => {
+
+    if(!origin || !destination || !paymentMethod || !driverMethod || !clienteId || !price.toFixed(2)){
+      Alert.alert('Preencha todos os campos para solicitar a viagem');
       return;
     }
+    setPaymentModalVisible(false);
+    requestRideClient(origin, destination, paymentMethod, driverMethod, clienteId, price );
 
-    const origem = `${origin.latitude},${origin.longitude}`;
-    const destino = `${destination.latitude},${destination.longitude}`;
-
-    try {
-      const url = `/api/viagem/cliente/${clienteId}/cartao/${paymentMethod}/motorista/${driverMethod}?clienteId=${clienteId}&cartaoClienteId=${paymentMethod}&motoristaId=${driverMethod}`;
-
-      const response = await axiosInstance.post(url, {
-        origem,
-        destino,
-        valor: 30,
-      });
-
-      if (response.status === 201) {
-        console.log("🚀 Viagem criada, buscando o ID correto...");
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 🔍 Buscar a viagem criada para pegar o `viagemId` correto
-        const viagensResponse = await axiosInstance.get(`/api/viagem`);
-        const viagens = viagensResponse.data;
-
-        // 🔎 Filtra a viagem com a mesma origem enviada
-        const viagemCriada = viagens
-          .filter((v: any) => v.origem === origem)
-          .sort((a: any, b: any) => b.id - a.id)[0]; // Pega a mais recente
-
-        if (!viagemCriada) {
-          console.error("❌ Nenhuma viagem encontrada para a origem:", origem);
-          Alert.alert("Erro", "Não foi possível recuperar a viagem.");
-          return;
-        }
-
-        console.log("✅ Viagem encontrada:", viagemCriada);
-        console.log("📡 Enviando para WebSocket:", viagemCriada.id);
-
-        // Envie todos os dados necessários via WebSocket
-        const mensagemWebSocket = {
-          viagemId: viagemCriada.id,
-          origem,
-          destino,
-          clienteId: Number(clienteId),
-          mensagem: "Nova solicitação de viagem"
-        };
-        console.log("📦 Dados sendo enviados via WebSocket:", mensagemWebSocket);
-
-
-
-        // 🔴 Envia o `viagemId` correto para o motorista via WebSocket
-        clientRef.current?.publish({
-          destination: `/app/nova-viagem/${driverMethod}`,
-          body: JSON.stringify({
-            viagemId: viagemCriada.id,
-            origem,
-            destino,
-          }),
-        });
-
-        Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
-      } else {
-        throw new Error("Falha ao criar viagem.");
-      }
-    } catch (error) {
-      console.error("❌ Erro ao solicitar viagem:", error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível solicitar a viagem.");
-    }
   };
+
+  const handleCenterUserLocation = () => {
+    mapRef.current?.animateToRegion({
+      latitude: userLocation?.latitude || -23.55052,
+      longitude: userLocation?.longitude || -46.633308,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    });
+  };
+
 
 
   const handleCancelRide = () => {
@@ -204,6 +152,7 @@ export default function Home() {
     setPaymentMethod(null);
     setPaymentModalVisible(false); // Fecha o modal
   };
+
 
   return (
     <View style={styles.container}>
@@ -247,9 +196,9 @@ export default function Home() {
       </MapView>
 
       <View style={styles.content}>
-        {/* <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
+        <Button theme="blue" onPress={handleCenterUserLocation} style={styles.button}>
           Centralizar Localização
-        </Button> */}
+        </Button>
         <Button theme="blue" onPress={() => setModalVisible(true)} style={styles.button}>
           Definir Destino
         </Button>
@@ -305,7 +254,7 @@ export default function Home() {
             ))}
           </YStack>
 
-          <Button theme="green" onPress={handleRequestRide} style={styles.button} mt="$4">
+          <Button theme="green" onPress={handleRequestRideClient} style={styles.button} mt="$4">
             Solicitar Viagem
           </Button>
 

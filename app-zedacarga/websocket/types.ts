@@ -14,4 +14,4 @@ export interface RideRequest {
     status?: RideStatus;
 }
 
-export type RideStatus = 'AGUARDANDO' | 'ACEITO' | 'ANDAMENTO' | 'FINALIZADO' | 'CANCELADO';
+export type RideStatus = 'AGUARDANDO' | 'ACEITO' | 'ANDAMENTO' | 'CONCLUIDO' | 'RECUSADO';

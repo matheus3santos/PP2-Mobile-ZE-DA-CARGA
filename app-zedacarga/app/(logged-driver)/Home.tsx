@@ -40,6 +40,7 @@ interface ViagemSolicitadas {
 export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Novo estado para controlar a visibilidade do modal
+  // const [viagemId, setViagemId] = useState<number | null>(null);
   const { rideRequest, acceptRide, rejectRide } = useRideWebSocket({
     userId: motoristaId,
     userType: 'motorista'
@@ -73,6 +74,7 @@ export default function Index() {
           setMotoristaId(idSemPrefixo);
         }
 
+
         const response = await axiosInstance.get("/api/motorista");
         const motoristaData = response.data.find(
           (m: Motorista) => m.email === email
@@ -80,24 +82,29 @@ export default function Index() {
 
         if (motoristaData) {
           motoristaData.contas = motoristaData.contas || [];
+          motoristaData.viagens = motoristaData.viagens || [];
           // Se houver uma conta bancária associada, atualiza o estado
 
           if (motoristaData.contas.length > 0) {
             setContaForm({ id: motoristaData.contas[0].id || '' });
           }
 
-          if (motoristaData.viagens.length > 0) {
+          const viagemPendente = motoristaData.viagens.find(
+            (viagem: ViagemSolicitadas) => viagem.status === "PENDENTE"
+          );
+          // Busca por uma viagem "PENDENTE" associada ao motorista
+          if (viagemPendente) {
+            // Atualiza o estado com a viagem "PENDENTE"
             setViagens({
-              id: motoristaData.viagens[0].id || 0,
-              origem: motoristaData.viagens[0].origem || '',
-              destino: motoristaData.viagens[0].destino || '',
-              valor: motoristaData.viagens[0].valor || 0,
-              status: motoristaData.viagens[0].status || ''
+              id: viagemPendente.id,
+              origem: viagemPendente.origem,
+              destino: viagemPendente.destino,
+              valor: viagemPendente.valor,
+              status: viagemPendente.status
             });
+          } else {
+            console.log("Nenhuma viagem com status 'PENDENTE' encontrada.");
           }
-
-
-
 
         }
       } catch (error) {
@@ -105,34 +112,35 @@ export default function Index() {
       }
     };
     getMotoristaId();
+
   }, []);
 
   const handleAcceptRide = () => {
     console.log("🟢 Botão 'Aceitar' pressionado!");
 
-    if (!viagens.id || !motoristaId || !contaForm.id) {
+    if (!rideRequest || !motoristaId || !contaForm.id) {
       console.warn("⚠️ Falha ao aceitar viagem: dados ausentes", {
-        viagemId: viagens.id,
+        viagemId: rideRequest?.viagemId,
         motoristaId,
         contaBancariaId: contaForm.id,
       });
       return;
     }
 
-    console.log("🚀 Aceitando viagem com ID:", viagens.id);
+    console.log("🚀 Aceitando viagem com ID:", rideRequest?.viagemId);
 
-    acceptRide(viagens.id, motoristaId, Number(contaForm.id));
+    acceptRide(rideRequest?.viagemId, motoristaId, Number(contaForm.id));
 
   };
 
-
-
   const handleRejectRide = () => {
-    if (!viagens.id || !motoristaId || !contaForm.id) return;
-    rejectRide(viagens.id, motoristaId, contaForm.id);
+    if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
+    rejectRide(rideRequest?.viagemId, motoristaId, contaForm.id);
     Alert.alert("Rejeição", "Viagem recusada.");
 
   };
+
+
 
   return (
     <View style={styles.container}>
@@ -150,7 +158,7 @@ export default function Index() {
 
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>ID:</Text>
-                  <Text style={styles.infoValue}>{viagens.id}</Text>
+                  <Text style={styles.infoValue}>{viagens.id || "N/A"}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
