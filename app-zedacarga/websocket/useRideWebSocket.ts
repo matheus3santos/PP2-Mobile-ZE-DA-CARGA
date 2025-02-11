@@ -58,10 +58,12 @@ export const useRideWebSocket = ({ userId, userType }: {
                 if (userType === 'cliente') {
                     Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 }
+                Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 break;
 
             case 'ANDAMENTO':
                 const route = userType === 'motorista' || userType === 'cliente' ? '/MapRide' : '/MapRideClient';
+
                 router.push({
                     pathname: route,
                     params: {
@@ -70,6 +72,7 @@ export const useRideWebSocket = ({ userId, userType }: {
                         destino: typeof data.destino === 'string' ? data.destino : JSON.stringify(data.destino),
                     },
                 });
+                Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 break;
 
             case 'RECUSADO':
@@ -103,7 +106,7 @@ export const useRideWebSocket = ({ userId, userType }: {
             });
 
             if (response.status === 201 && response.data?.id) {
-                
+
                 console.log("🚀 Viagem criada com sucesso! ID da viagem:", response.data.id);
 
                 const viagemId = response.data.id; // Pega o ID diretamente da resposta da API
@@ -159,7 +162,7 @@ export const useRideWebSocket = ({ userId, userType }: {
 
             if (response.status === 200) {
                 Alert.alert("Sucesso", "Viagem aceita!");
-                setRideRequest(null); // Fecha o modal após aceitar
+                setRideRequest(null);
                 router.push({
                     pathname: "/MapRide",
                     params: {
@@ -233,6 +236,12 @@ export const useRideWebSocket = ({ userId, userType }: {
         }
     };
 
+    const closeRide = async () => {
+
+        setRideRequest(null);
+
+    };
+
 
 
 
@@ -243,7 +252,7 @@ export const useRideWebSocket = ({ userId, userType }: {
         rejectRide,
         concludeRide,
         requestRideClient,
-
+        closeRide,
         client: clientRef.current,
     };
 };

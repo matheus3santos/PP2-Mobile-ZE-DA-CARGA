@@ -1,4 +1,3 @@
-//Motorista
 import React, { useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Text, Alert, Modal } from "react-native";
 import BottomBar from "components/BottomBar";
@@ -7,14 +6,11 @@ import * as SecureStore from "expo-secure-store";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import axiosInstance from "app/config/axiosUrlConfig";
-import { Button, H3 } from "tamagui";
+import { H3, Button } from "tamagui";
 import { useRouter } from "expo-router";
 import { useRideWebSocket } from '../../websocket/useRideWebSocket';
 import { RideRequest } from '../../websocket/types';
 import { styles } from '../../styles/HomeDriver.style';
-
-
-
 
 interface ContaBancaria {
   id?: number;
@@ -26,41 +22,38 @@ interface Motorista {
   contas?: ContaBancaria[];
   viagens?: ViagemSolicitadas[];
 }
+
 interface ViagemSolicitadas {
   id: number;
   origem: string;
   destino: string;
   valor: number;
-  status: string;
+  statusViagem: string;
 }
 
-
-
-
 export default function Index() {
+
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Novo estado para controlar a visibilidade do modal
-  // const [viagemId, setViagemId] = useState<number | null>(null);
-  const { rideRequest, acceptRide, rejectRide } = useRideWebSocket({
-    userId: motoristaId,
-    userType: 'motorista'
-  });
-
-  const clientRef = useRef<Client | null>(null);
+  const [isPendingModalVisible, setIsPendingModalVisible] = useState<boolean>(false); // Modal para viagem PENDENTE
   const [contaForm, setContaForm] = useState<ContaBancaria>({
     id: 0,
   });
-
   const [viagens, setViagens] = useState<ViagemSolicitadas>({
     id: 0,
     origem: "",
     destino: "",
     valor: 0,
-    status: "",
-  }
+    statusViagem: "",
+  });
 
-  );
+  const [hasPendingRide, setHasPendingRide] = useState<boolean>(false); // Estado para verificar se há viagens pendentes
+  const { rideRequest, acceptRide, rejectRide, closeRide } = useRideWebSocket({
+    userId: motoristaId,
+    userType: 'motorista',
+  });
 
+  const clientRef = useRef<Client | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -73,7 +66,6 @@ export default function Index() {
           const idSemPrefixo = id.replace("secure_token_", "");
           setMotoristaId(idSemPrefixo);
         }
-
 
         const response = await axiosInstance.get("/api/motorista");
         const motoristaData = response.data.find(
@@ -90,34 +82,39 @@ export default function Index() {
           }
 
           const viagemPendente = motoristaData.viagens.find(
-            (viagem: ViagemSolicitadas) => viagem.status === "PENDENTE"
+            (viagem: ViagemSolicitadas) => viagem.statusViagem === "PENDENTE"
           );
-          // Busca por uma viagem "PENDENTE" associada ao motorista
+          // Verifica se há uma viagem "PENDENTE" associada ao motorista
           if (viagemPendente) {
-            // Atualiza o estado com a viagem "PENDENTE"
+            setHasPendingRide(true); // Define que existe uma viagem pendente
             setViagens({
               id: viagemPendente.id,
               origem: viagemPendente.origem,
               destino: viagemPendente.destino,
               valor: viagemPendente.valor,
-              status: viagemPendente.status
+              statusViagem: viagemPendente.statusViagem,
             });
           } else {
-            console.log("Nenhuma viagem com status 'PENDENTE' encontrada.");
+            setHasPendingRide(false); // Se não houver, define que não há viagens pendentes
           }
-
         }
       } catch (error) {
         console.error("Erro ao recuperar o ID do motorista:", error);
       }
     };
     getMotoristaId();
-
   }, []);
+
+  const checkPendingRide = () => {
+    if (hasPendingRide) {
+      setIsPendingModalVisible(true); // Abre o modal de viagem PENDENTE
+    } else {
+      Alert.alert("Sem Viagens Pendentes", "Não há viagens pendentes no momento.");
+    }
+  };
 
   const handleAcceptRide = () => {
     console.log("🟢 Botão 'Aceitar' pressionado!");
-
     if (!rideRequest || !motoristaId || !contaForm.id) {
       console.warn("⚠️ Falha ao aceitar viagem: dados ausentes", {
         viagemId: rideRequest?.viagemId,
@@ -126,18 +123,35 @@ export default function Index() {
       });
       return;
     }
-
     console.log("🚀 Aceitando viagem com ID:", rideRequest?.viagemId);
-
     acceptRide(rideRequest?.viagemId, motoristaId, Number(contaForm.id));
-
   };
 
   const handleRejectRide = () => {
     if (!rideRequest?.viagemId || !motoristaId || !contaForm.id) return;
     rejectRide(rideRequest?.viagemId, motoristaId, contaForm.id);
     Alert.alert("Rejeição", "Viagem recusada.");
+  };
 
+  const handleAcceptPendingRide = () => {
+    if (!viagens.id || !motoristaId || !contaForm.id) return;
+
+    console.log("🟢 Aceitar viagem pendente!");
+
+    acceptRide(viagens.id, motoristaId, contaForm.id);
+    setIsPendingModalVisible(false); // Fecha o modal de viagem pendente
+  };
+
+  const handleRejectPendingRide = () => {
+    console.log("🔴 Rejeitar viagem pendente!");
+    if (!viagens.id || !motoristaId || !contaForm.id) return;
+
+    rejectRide(viagens.id, motoristaId, contaForm.id);
+    setIsPendingModalVisible(false); // Fecha o modal de viagem pendente
+  };
+
+  const handleCloseModal = () => {
+    closeRide(); // ou qualquer outra lógica para fechar o modal
   };
 
 
@@ -155,22 +169,18 @@ export default function Index() {
               </View>
 
               <View style={styles.tripInfo}>
-
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>ID:</Text>
-                  <Text style={styles.infoValue}>{viagens.id || "N/A"}</Text>
+                  <Text style={styles.infoValue}>{rideRequest?.viagemId || "N/A"}</Text>
                 </View>
-
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Origem:</Text>
                   <H3 style={styles.infoValue}>{rideRequest.origem}</H3>
                 </View>
-
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Destino:</Text>
                   <H3 style={styles.infoValue}>{rideRequest.destino}</H3>
                 </View>
-
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Valor:</Text>
                   <Text style={styles.infoValue}>
@@ -187,6 +197,55 @@ export default function Index() {
                 <Button onPress={handleAcceptRide} style={styles.acceptButton}>
                   Aceitar
                 </Button>
+
+                <Button
+                  onPress={handleCloseModal}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeButtonText}>Fechar</Text>
+                </Button>
+              </View>
+            </View>
+          </View>
+        )}
+      </Modal>
+
+      {/* Modal para viagem PENDENTE */}
+      <Modal visible={!!hasPendingRide} transparent={true} animationType="slide">
+        {hasPendingRide && (
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Viagem Pendente</Text>
+              </View>
+
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>ID:</Text>
+                <Text style={styles.infoValue}>{viagens.id || "N/A"}</Text>
+              </View>
+
+              <View style={styles.tripInfo}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Origem:</Text>
+                  <H3 style={styles.infoValue}>{viagens.origem}</H3>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Destino:</Text>
+                  <H3 style={styles.infoValue}>{viagens.destino}</H3>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Valor:</Text>
+                  <Text style={styles.infoValue}>R$ {viagens.valor.toFixed(2)}</Text>
+                </View>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button onPress={handleRejectPendingRide} style={styles.rejectButton}>
+                  Recusar
+                </Button>
+                <Button onPress={handleAcceptPendingRide} style={styles.acceptButton}>
+                  Aceitar
+                </Button>
               </View>
             </View>
           </View>
@@ -199,10 +258,13 @@ export default function Index() {
 
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>
-
         ) : (
           <Text>Carregando...</Text>
         )}
+
+        <Button onPress={checkPendingRide} style={styles.checkButton}>
+          Verificar Viagens Pendentes
+        </Button>
       </View>
 
       <BottomBar screen="Home" />

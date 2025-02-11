@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, Image, ActivityIndicator, ScrollView } from 'react-native';
-import { H4, H6, Button } from 'tamagui';
+import { H3, H4, H6, Button, Avatar } from 'tamagui';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import axiosInstance from '../config/axiosUrlConfig';
-import { Plus, LogOut } from '@tamagui/lucide-icons'
+import { Plus, LogOut, User, Car, CreditCard, History } from '@tamagui/lucide-icons'
 import BottomBarUser from 'components/BottomBarUser';
 
 
@@ -58,99 +58,179 @@ export default function Profile() {
 
     if (!cliente) {
         return (
-            <View style={styles.container}>
-                <Text>Erro ao carregar perfil. Tente novamente.</Text>
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>Erro ao carregar perfil. Tente novamente.</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Image style={styles.image} source={{ uri: cliente.foto || 'https://via.placeholder.com/150' }} />
-            <H4>{cliente.nome}</H4>
-            <H6>{cliente.email}</H6>
-            <H6>Telefone: {cliente.telefone}</H6>
-            <H6>CPF: {cliente.cpf}</H6>
+        <View style={styles.mainContainer}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.headerContainer}>
+                    <View style={styles.avatarContainer}>
+                        <Avatar circular size="$12" backgroundColor="#3498db">
+                            <Text style={styles.avatarText}>
+                                {cliente.nome.charAt(0).toUpperCase()}
+                            </Text>
+                        </Avatar>
+                        <H3 style={styles.userName}>
+                            {cliente.nome}
+                        </H3>
 
+                        <H3 style={styles.userEmail}>
+                            {cliente.email}
+                        </H3>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-                {/* Área de Foto e Nome */}
-                <View style={{ alignItems: 'center', marginVertical: 20 }}>
-
-                    {/* <H3 style={{ color: 'black' }}>{cliente.nome}</H3> */}
+                    </View>
                 </View>
 
-                <View style={{ alignItems: 'center' }}>
-                    <Button
-                        onPress={() => {
-                            router.push('/(logged-user)/EditUser')
-                        }}
-                        style={styles.Button}
-                        icon={Plus}
-                    >
-                        Editar Perfil
-                    </Button>
-                    <Button
-                        onPress={() => {
-                            router.push('/(logged-user)/RegisterCardUser')
-                        }}
-                        style={styles.Button}
-                        icon={Plus}
-                    >
-                        Formas de pagamento
-                    </Button>
 
-                    <Button
-                        onPress={() => {
-                            router.push('/(logged-user)/HistoricTravelUser')
-                        }}
-                        style={styles.Button}
-                        icon={Plus}
-                    >
-                        Historico de viagens
-                    </Button>
+                <View style={styles.buttonContainer}>
 
-                    <Button style={styles.cancelButton}
-                        onPress={handleLogout}>
-                        Sair
-                    </Button>
+                        <Button
+                            onPress={() => {
+                                router.push('/(logged-user)/EditUser')
+                            }}
+                            style={styles.button}
+                            icon={Plus}
+                        >
+                            <Text style={styles.buttonText}>Editar Perfil</Text>
+                        </Button>
+                        <Button
+                            onPress={() => {
+                                router.push('/(logged-user)/RegisterCardUser')
+                            }}
+                            style={styles.button}
+                            icon={Plus}
+                        >
+                            <Text style={styles.buttonText}>Formas de Pagamento</Text>
+                        </Button>
 
+                        <Button
+                            onPress={() => {
+                                router.push('/(logged-user)/HistoricTravelUser')
+                            }}
+                            style={styles.button}
+                            icon={Plus}
+                        >
+                            <Text style={styles.buttonText}>Historico de Viagens</Text>
+                        </Button>
+
+                        <Button style={styles.logoutButton} icon={LogOut}
+                            onPress={handleLogout}>
+                            <Text style={styles.buttonText}>Sair</Text>
+                        </Button>
                 </View>
-
             </ScrollView>
             <BottomBarUser screen="HomeUser" />
-
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    mainContainer: {
+        flex: 1,
+        backgroundColor: '#f5f6fa',
+    },
+    scrollContent: {
+        paddingBottom: 80,
+    },
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#f5f6fa',
     },
-    image: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f6fa',
+        padding: 20,
+    },
+    errorText: {
+        color: '#e74c3c',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    headerContainer: {
+        alignItems: 'center',
+        marginVertical: 32,
+        backgroundColor: '#ffffff',
+        paddingVertical: 24,
+        marginHorizontal: 16,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    avatarContainer: {
         marginBottom: 16,
     },
-    Button: {
-        backgroundColor: 'black',
-        color: 'white',
-        width: 400,
-        height: 50,
-        marginBottom: 10,
-        fontSize: 18
+    avatarText: {
+        fontSize: 24,
+        color: '#ffffff',
+        fontWeight: 'bold',
     },
-    cancelButton: {
-        backgroundColor: 'red',
-        color: 'white',
-        width: 400,
-        height: 50,
-        marginBottom: 10,
-        fontSize: 18,
+    userName: {
+        color: '#2c3e50',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    userEmail: {
+        color: '#7f8c8d',
+        fontSize: 16,
+    },
+    buttonContainer: {
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+    button: {
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        height: 56,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 20,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    buttonPress: {
+        backgroundColor: '#f8f9fa',
+        // scale: 0.98,
+    },
+    buttonText: {
+        color: '#2c3e50',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 12,
+    },
+    logoutButton: {
+        backgroundColor: '#fff0f0',
+        borderRadius: 12,
+        height: 56,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 20,
+        marginTop: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
     },
 });

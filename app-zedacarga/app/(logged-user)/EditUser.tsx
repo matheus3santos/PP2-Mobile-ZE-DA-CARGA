@@ -128,8 +128,20 @@ export default function EditProfileUser() {
                 keyboardType="phone-pad"
                 style={styles.input}
             />
-            <Input placeholder="CPF" value={cpf} onChangeText={setCpf} keyboardType="numeric" style={styles.input} />
-            <Input placeholder="CEP" value={cep} onChangeText={setCep} keyboardType="numeric" style={styles.input} />
+            <Input
+                placeholder="CPF"
+                value={cpf}
+                onChangeText={setCpf}
+                keyboardType="numeric"
+                style={styles.input}
+            />
+            <Input
+                placeholder="CEP"
+                value={cep}
+                onChangeText={setCep}
+                keyboardType="numeric"
+                style={styles.input}
+            />
             <Input
                 placeholder="Número da Residência"
                 value={residenciaNumero}

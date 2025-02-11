@@ -1,5 +1,5 @@
 import { Avatar, H3, H4, H5, H6, Button, Text } from "tamagui";
-import { Plus, LogOut } from '@tamagui/lucide-icons'
+import { Plus, LogOut, User, Car, CreditCard, History } from '@tamagui/lucide-icons'
 
 import { Image, TouchableOpacity, ScrollView, View, ActivityIndicator, StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -53,90 +53,191 @@ export default function Profile() {
     };
 
     if (loading) {
-        return <ActivityIndicator size="large" color="orange" />;
-    }
-
-    if (!motorista) {
         return (
-            <View style={styles.container}>
-                <Text>Erro ao carregar perfil. Tente novamente.</Text>
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#3498db" />
             </View>
         );
     }
 
+    if (!motorista) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>Erro ao carregar perfil. Tente novamente.</Text>
+            </View>
+        );
+    }
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-                <View style={{ alignItems: 'center', marginVertical: 20 }}>
-                    <H3 style={{ color: 'black' }}>{motorista.nome}</H3>
-
+        <View style={styles.mainContainer}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.headerContainer}>
+                    <View style={styles.avatarContainer}>
+                        <Avatar circular size="$12" backgroundColor="#3498db">
+                            <Text style={styles.avatarText}>
+                                {motorista.nome.charAt(0).toUpperCase()}
+                            </Text>
+                        </Avatar>
+                    </View>
+                    <H3 style={styles.userName}>{motorista.nome}</H3>
+                    <Text style={styles.userEmail}>{motorista.email}</Text>
                 </View>
-                <View style={{ alignItems: 'center' }}>
+
+                <View style={styles.buttonContainer}>
                     <Button
-                        onPress={() => {
-                            router.push('/EditProfile')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
+                        onPress={() => router.push('/EditProfile')}
+                        style={styles.button}
+                        icon={User}
+                        pressStyle={styles.buttonPress}
                     >
-                        Editar Perfil
+                        <Text style={styles.buttonText}>Editar Perfil</Text>
                     </Button>
+
                     <Button
-                        onPress={() => {
-                            router.push('/InfoCar')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
+                        onPress={() => router.push('/InfoCar')}
+                        style={styles.button}
+                        icon={Car}
+                        pressStyle={styles.buttonPress}
                     >
-                        Informações do Veiculo
+                        <Text style={styles.buttonText}>Informações do Veículo</Text>
                     </Button>
+
                     <Button
-                        onPress={() => {
-                            router.push('/InfoConta')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
+                        onPress={() => router.push('/InfoConta')}
+                        style={styles.button}
+                        icon={CreditCard}
+                        pressStyle={styles.buttonPress}
                     >
-                        Conta Bancaria
+                        <Text style={styles.buttonText}>Conta Bancária</Text>
                     </Button>
+
                     <Button
-                        onPress={() => {
-                            router.push('/EditCar')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
+                        onPress={() => router.push('/TravelHistory')}
+                        style={styles.button}
+                        icon={History}
+                        pressStyle={styles.buttonPress}
                     >
-                        Editar Veiculo
+                        <Text style={styles.buttonText}>Histórico de Entregas</Text>
                     </Button>
+
                     <Button
-                        onPress={() => {
-                            router.push('/TravelHistory')
-                        }}
-                        style={{ backgroundColor: 'black', color: 'white', width: 240, marginBottom: 10 }}
-                        icon={Plus}
-                    >
-                        Historico de entregas
-                    </Button>
-                    <Button
-                        onPress={(handleLogout)}
-                        style={{ backgroundColor: 'red', color: 'white', width: 240, marginBottom: 10 }}
+                        onPress={handleLogout}
+                        style={styles.logoutButton}
                         icon={LogOut}
+                        pressStyle={styles.buttonPress}
                     >
-                        Sair
+                        <Text style={styles.buttonText}>Sair</Text>
                     </Button>
                 </View>
             </ScrollView>
             <BottomBar screen="Profile" />
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    mainContainer: {
+        flex: 1,
+        backgroundColor: '#f5f6fa',
+    },
+    scrollContent: {
+        paddingBottom: 80,
+    },
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
-    }
+        backgroundColor: '#f5f6fa',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f6fa',
+        padding: 20,
+    },
+    errorText: {
+        color: '#e74c3c',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    headerContainer: {
+        alignItems: 'center',
+        marginVertical: 32,
+        backgroundColor: '#ffffff',
+        paddingVertical: 24,
+        marginHorizontal: 16,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    avatarContainer: {
+        marginBottom: 16,
+    },
+    avatarText: {
+        fontSize: 24,
+        color: '#ffffff',
+        fontWeight: 'bold',
+    },
+    userName: {
+        color: '#2c3e50',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    userEmail: {
+        color: '#7f8c8d',
+        fontSize: 16,
+    },
+    buttonContainer: {
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+    button: {
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        height: 56,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 20,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    buttonPress: {
+        backgroundColor: '#f8f9fa',
+        // scale: 0.98,
+    },
+    buttonText: {
+        color: '#2c3e50',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 12,
+    },
+    logoutButton: {
+        backgroundColor: '#fff0f0',
+        borderRadius: 12,
+        height: 56,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 20,
+        marginTop: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
+    },
 });

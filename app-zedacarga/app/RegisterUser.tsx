@@ -246,7 +246,7 @@ export default function RegisterUser() {
                     />
                 </View> 
 
-                <View style={styles.container}>
+                {/* <View style={styles.container}>
                     <H6 style={styles.label}>Senha</H6>
                     <Input
                         style={styles.input}
@@ -260,7 +260,7 @@ export default function RegisterUser() {
                         style={styles.input}
                         placeholder="Confirme sua senha"
                     />
-                </View>
+                </View> */}
 
                 <Button
                     onPress={() => { apiRegisterUser(); router.push('/Login-user') }}
@@ -272,11 +272,26 @@ export default function RegisterUser() {
                         borderRadius: 5,
                         justifyContent: 'center',
                         alignSelf: 'center',
-                        marginBottom: 30,
+                        marginBottom: 10,
                         marginTop: 20,
                     }}
                 >
                     Cadastrar
+                </Button>
+
+                <Button
+                    onPress={() => { router.push('/') }}
+                    style={{
+                        width: '60%',
+                        backgroundColor: 'red',
+                        color: 'white',
+                        padding: 10,
+                        borderRadius: 5,
+                        justifyContent: 'center',
+                        alignSelf: 'center',
+                    }}
+                >
+                    Cancelar
                 </Button>
             </View>
         </ScrollView>

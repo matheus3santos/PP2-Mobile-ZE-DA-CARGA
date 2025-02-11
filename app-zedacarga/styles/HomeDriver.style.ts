@@ -91,4 +91,26 @@ export const styles = StyleSheet.create({
         borderRadius: 8,
         paddingVertical: 12,
     },
+    checkButton: {
+        marginTop: 24,
+        backgroundColor: "#4CAF50",
+        paddingVertical: 12,
+        borderRadius: 8,
+    },
+
+    closeButton: {
+        backgroundColor: "#d3d3d3", // Cor de fundo cinza claro
+        borderRadius: 8,
+        paddingVertical: 12,
+        borderColor: "#ccc", // Cor da borda
+        alignItems: "center", // Centraliza o texto horizontalmente
+    },
+
+    closeButtonText: {
+        color: "#333", // Cor do texto (preto ou cinza escuro)
+        fontSize: 16, // Tamanho do texto
+        fontWeight: "bold", // Peso do texto
+    },
+
+
 });

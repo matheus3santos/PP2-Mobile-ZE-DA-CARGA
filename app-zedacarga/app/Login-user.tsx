@@ -5,8 +5,6 @@ import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import axiosInstance from './config/axiosUrlConfig';
 
-
-
 export default function Login() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -45,12 +43,12 @@ export default function Login() {
     <View style={styles.container}>
       <View style={styles.imageContainer}>
         <Image
-          style={[styles.image, { resizeMode: 'stretch' }]}
+          style={[styles.image, { resizeMode: 'contain' }]}
           source={require('../public/images/logo.png')}
         />
       </View>
       <View style={styles.textContainer}>
-        <H4>ENTRAR</H4>
+        <H4>USUARIO</H4>
       </View>
 
       <View style={styles.formContainer}>
@@ -59,7 +57,7 @@ export default function Login() {
           <Input
             value={email}
             onChangeText={setEmail}
-            className="w-80 bg-white text-black rounded shadow hover:border-orange-600"
+            style={styles.input}
             placeholder="Digite seu e-mail"
           />
         </View>
@@ -70,17 +68,15 @@ export default function Login() {
           icon={
             <Image
               source={require('../public/images/google-icon.png')}
-              style={{ width: 24, height: 24, marginRight: 8, marginTop: 4 }}
+              style={styles.googleIcon}
             />
           }
-          className="bg-orange-500 text-white mt-4"
+          style={styles.googleButton}
         >
           Logar com o Google
         </Button>
 
-        <TouchableOpacity>
-          <H6 style={styles.forgotPasswordText}>Esqueceu a senha?</H6>
-        </TouchableOpacity>
+
 
         <TouchableOpacity>
           <H6
@@ -103,34 +99,63 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   image: {
-    width: 320,
-    height: 320,
+    width: 200,
+    height: 200,
   },
   textContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   formContainer: {
-    width: '80%',
+    width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
   },
   inputGroup: {
     width: '100%',
+    marginBottom: 10,
+  },
+  input: {
+    width: '100%',
+    backgroundColor: 'white',
+    color: 'black',
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   errorText: {
     color: 'red',
-    marginTop: 8,
+    marginTop: 5,
     textAlign: 'center',
   },
+  googleButton: {
+    backgroundColor: '#f4f4f4',
+    color: 'black',
+    marginTop: 10,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
   forgotPasswordText: {
-    color: 'blue',
+    color: '#007AFF',
     textDecorationLine: 'underline',
-    marginTop: 16,
+    marginTop: 15,
   },
 });
