@@ -21,6 +21,12 @@ interface Motorista {
     id?: number;
     email: string;
     contas?: ContaBancaria[];
+    pagamento?: PagamentoForm[];
+
+}
+
+export interface PagamentoForm {
+    id: string;
 }
 
 export default function InfoConta() {
@@ -33,6 +39,10 @@ export default function InfoConta() {
         numeroConta: '',
         digitoConta: '',
         agencia: ''
+    });
+
+    const [pagamentoForm, setPagamentoForm] = useState<PagamentoForm>({
+        id: ''
     });
 
     useEffect(() => {
@@ -55,6 +65,8 @@ export default function InfoConta() {
             if (motoristaData) {
                 motoristaData.contas = motoristaData.contas || [];
             }
+
+
 
             setMotorista(motoristaData || null);
         } catch (e) {
@@ -110,6 +122,7 @@ export default function InfoConta() {
                     >
                         Nova Conta
                     </Button>
+
                 </View>
 
                 <View style={styles.cardContainer}>

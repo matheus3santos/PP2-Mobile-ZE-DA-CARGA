@@ -16,42 +16,13 @@ export default function RegisterUser() {
     const [telefone, setTelefone] = useState('');
     const [cpf, setCpf] = useState('');
     const [dataNascimento, setDataNascimento] = useState('');
-    const [rua, setLogradouro] = useState('');
-    const [numero, setNumero] = useState('');
+    const [residenciaNumero, setResidenciaNumero] = useState('');
     const [cep, setCep] = useState('');
+    const [foto, setFoto] = useState('string');
     const [error, setError] = useState('');
 
 
-    // Função para verificar o CEP
-    const verificarCEP = async () => {
-        if (cep.length === 8) {
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
 
-                // Se o CEP for válido, preenche o logradouro, caso contrário, mostra erro
-                if (data.erro) {
-                    setErro(true);
-                    setLogradouro('');
-                } else {
-                    setErro(false);
-                    setLogradouro(data.logradouro);
-                }
-            } catch (error) {
-                setErro(true);
-                setLogradouro('');
-                console.error('Erro ao buscar o CEP:', error);
-            }
-        } else {
-            setErro(true);
-            setLogradouro('');
-        }
-    };
-
-    // Chama a validação sempre que o CEP mudar
-    useEffect(() => {
-        verificarCEP();
-    }, [cep]);
 
     // const validateEmail = (email) => {
     //     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -118,21 +89,35 @@ export default function RegisterUser() {
             cpf: cpf,
             email: email,
             dataNascimento: dataNascimento,
-            rua: rua,
-            numero: numero,
+            residenciaNumero: residenciaNumero,
             cep: cep,
-            // password: password
-        }
-        console.log(registerRequestData)
+            foto: foto,
+        };
+
+        console.log(registerRequestData);
+
         try {
-            await axiosInstance.post("/api/cliente", registerRequestData).then((response) => {
-                console.log(response)
-            })
+            const response = await axiosInstance.post("/api/cliente", registerRequestData);
+
+            if (response.status === 201 || response.status === 200) {
+                alert("Cadastro realizado com sucesso!");
+                router.push('/Login-user');
+            }
+        } catch (error: any) {
+            if (error.response) {
+                if (error.response.status === 400) {
+                    alert("Erro no cadastro: Verifique os dados preenchidos.");
+                } else if (error.response.status === 500) {
+                    alert("Erro interno no servidor. Tente novamente mais tarde.");
+                } else {
+                    alert("Ocorreu um erro inesperado. Tente novamente.");
+                }
+            } else {
+                alert("Erro de conexão. Verifique sua internet e tente novamente.");
+            }
         }
-        catch (e) {
-            alert(e)
-        }
-    }
+    };
+
 
     return (
         <ScrollView className='h-full bg-white'>
@@ -140,7 +125,7 @@ export default function RegisterUser() {
                 <Image
                     source={require('../public/images/logo.png')}
                     style={{
-                        marginTop:30,
+                        marginTop: 30,
                         width: 100,
                         height: 100,
                         justifyContent: 'center',
@@ -212,25 +197,16 @@ export default function RegisterUser() {
                     />
                 </View>
 
-                {/* <View style={styles.container}>
-                    <H6 style={styles.label}>Rua</H6>
-                    <Input
-                        style={styles.input}
-                        placeholder="Digite sua rua"
-                        value={rua}
-                        onChangeText={setLogradouro}
-                    />
-                </View>
 
                 <View style={styles.container}>
-                    <H6 style={styles.label}>Número</H6>
+                    <H6 style={styles.label}>Numero</H6>
                     <Input
                         style={styles.input}
                         placeholder="Digite o número"
-                        value={numero}
-                        onChangeText={setNumero}
+                        value={residenciaNumero}
+                        onChangeText={setResidenciaNumero}
                     />
-                </View> */}
+                </View>
 
                 <View style={styles.container}>
                     <H6 style={styles.label}>CEP</H6>
@@ -244,7 +220,7 @@ export default function RegisterUser() {
                         value={cep}
                         onChangeText={setCep}
                     />
-                </View> 
+                </View>
 
                 {/* <View style={styles.container}>
                     <H6 style={styles.label}>Senha</H6>

@@ -9,13 +9,14 @@ import {
   Alert,
 } from 'react-native';
 
-const EditCar = ({ carDetails, onSave,  }) => {
+const EditCar = ({ carDetails, onSave, }) => {
   // Estados para armazenar os valores editáveis
   const [modelo, setModelo] = useState(carDetails?.modelo || '');
   const [ano, setAno] = useState(carDetails?.ano || '');
   const [placa, setPlaca] = useState(carDetails?.placa || '');
   const [renavam, setRenavam] = useState(carDetails?.renavam || '');
   const [cor, setCor] = useState(carDetails?.cor || '');
+  const [fotoVeiculo, setFotoVeiculo] = useState(carDetails?.fotoVeiculo || '');
 
   // Função para salvar os dados editados
   const handleSave = () => {
@@ -25,10 +26,11 @@ const EditCar = ({ carDetails, onSave,  }) => {
       placa,
       renavam,
       cor,
+      fotoVeiculo,
     };
 
     // Validação simples para garantir que os campos não estejam vazios
-    if (!modelo || !ano || !placa || !renavam || !cor) {
+    if (!modelo || !ano || !placa || !renavam || !cor || !fotoVeiculo) {
       Alert.alert('Erro', 'Todos os campos devem ser preenchidos.');
       return;
     }
@@ -81,6 +83,8 @@ const EditCar = ({ carDetails, onSave,  }) => {
         onChangeText={setCor}
         placeholder="Digite a cor"
       />
+
+
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.buttonText}>Salvar</Text>

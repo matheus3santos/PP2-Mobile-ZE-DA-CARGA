@@ -12,6 +12,11 @@ export interface RideRequest {
     mensagem?: string;
     clienteId: number;
     status?: RideStatus;
+    pagamento?: PagamentoForm[];
+}
+
+export interface PagamentoForm {
+    id: string;
 }
 
 export type RideStatus = 'AGUARDANDO' | 'ACEITO' | 'ANDAMENTO' | 'CONCLUIDO' | 'RECUSADO';

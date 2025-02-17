@@ -15,24 +15,28 @@ export const useRideWebSocket = ({ userId, userType }: {
     const clientRef = useRef<Client | null>(null);
 
 
-    // Conecta ao WebSocket
     useEffect(() => {
         if (!userId) return;
 
-
-        const socket = new SockJS("http://3.136.103.206:8080/ws");
-        //const socket = new SockJS("https://32c9-200-238-97-165.ngrok-free.app/ws");
+        const socket = new SockJS("https://6935-2804-14d-5483-45d0-54b6-f52e-4499-d22c.ngrok-free.app/ws");
         const client = new Client({
             webSocketFactory: () => socket,
+            reconnectDelay: 5000,
             onConnect: () => {
                 console.log(`${userType} conectado ao WebSocket`);
-                // Inscreve no tópico específico do usuário
                 client.subscribe(`/topic/${userType}/${userId}`, (message) => {
                     const data = JSON.parse(message.body);
                     console.log('WebSocket message received:', data); // Debug
 
                     if (data.origem) {
-                        setRideRequest(data);
+                        setRideRequest((prevState) => {
+                            // Verifica se o viagemId não é null antes de atualizar
+                            if (data.viagemId && data.viagemId !== null) {
+                                return { ...prevState, ...data };
+                            } else {
+                                return prevState; // Não altera se viagemId for null
+                            }
+                        });
                     }
                     handleRideStatusChange(data);
                 });
@@ -45,9 +49,14 @@ export const useRideWebSocket = ({ userId, userType }: {
         clientRef.current = client;
 
         return () => {
-            client.deactivate(); // Limpa a conexão
+            if (clientRef.current) {
+                console.log("Desativando WebSocket...");
+                clientRef.current.deactivate();
+            }
         };
+
     }, [userId, userType]);
+
 
     // Lida com mudanças de status
     const handleRideStatusChange = (data: RideRequest) => {
@@ -58,7 +67,6 @@ export const useRideWebSocket = ({ userId, userType }: {
                 if (userType === 'cliente') {
                     Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 }
-                Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 break;
 
             case 'ANDAMENTO':
@@ -72,7 +80,6 @@ export const useRideWebSocket = ({ userId, userType }: {
                         destino: typeof data.destino === 'string' ? data.destino : JSON.stringify(data.destino),
                     },
                 });
-                Alert.alert('Viagem Aceita', 'Um motorista aceitou sua viagem!');
                 break;
 
             case 'RECUSADO':
@@ -82,10 +89,10 @@ export const useRideWebSocket = ({ userId, userType }: {
             case 'CONCLUIDO':
                 Alert.alert('Viagem Concluída', 'A viagem foi concluída com sucesso!');
                 break;
+
         }
     };
 
-    // Solicitar viagem
     // Solicitar viagem
     const requestRideClient = async (origin, destination, paymentMethod, driverMethod, clienteId, price) => {
         if (!origin || !destination || !paymentMethod || !driverMethod || !clienteId) {
@@ -131,7 +138,6 @@ export const useRideWebSocket = ({ userId, userType }: {
                     }),
                 });
 
-                Alert.alert("Sucesso", "Viagem solicitada com sucesso!");
             } else {
                 throw new Error("Falha ao criar viagem ou ID não encontrado.");
             }
@@ -139,21 +145,71 @@ export const useRideWebSocket = ({ userId, userType }: {
             console.error("❌ Erro ao solicitar viagem:", error.response?.data || error.message);
             Alert.alert("Erro", "Não foi possível solicitar a viagem.");
         }
-    };
+    };;
 
 
 
 
-    // Funções de ação
+    // Funções de aceitar corrida
+    // const acceptRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
+    //     try {
+    //         const requestData = { statusViagem: "ACEITO" };
+    //         const url = `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`;
+
+    //         console.log("🚀 Enviando requisição para aceitar viagem:");
+    //         console.log("URL:", url);
+    //         console.log("Dados enviados:", requestData);
+
+    //         // Envia requisição para aceitar a viagem
+    //         const response = await axiosInstance.put(url, requestData, {
+    //             headers: { "Content-Type": "application/json" },
+    //         });
+
+    //         console.log("✅ Resposta recebida:", response.data);
+
+    //         if (response.status === 200) {
+    //             Alert.alert("Sucesso", "Viagem aceita!");
+    //             setRideRequest(null); // Limpa a solicitação de viagem
+    //             router.push({
+    //                 pathname: "/MapRide",
+    //                 params: {
+    //                     viagemId: viagemId,
+    //                     origem: typeof rideRequest?.origem === 'string' ? rideRequest.origem : JSON.stringify(rideRequest?.origem),
+    //                     destino: typeof rideRequest?.destino === 'string' ? rideRequest.destino : JSON.stringify(rideRequest?.destino),
+    //                 },
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error("❌ Erro ao aceitar viagem:", error);
+    //         Alert.alert("Erro", "Falha ao aceitar a viagem.");
+    //     }
+    // };
+
+    // Funções de aceitar corrida
     const acceptRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
         try {
             const requestData = { statusViagem: "ACEITO" };
-            const url = `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`;
+            const url = `/api/viagem/${viagemId}/motorista/${motoristaId}/contaBancariaMotorista/${contaBancariaId}/status`
+
+            // Requisição POST para verificar o pagamento da viagem
+            const pagamentoUrl = `/api/viagem/${viagemId}/conta/${contaBancariaId}/pagamento`;
+
+            try {
+                // Enviando um corpo vazio na requisição POST
+                await axiosInstance.post(pagamentoUrl, {
+                    headers: {},
+                });
+
+                console.log("✅ Pagamento verificado com sucesso!");
+            } catch (pagamentoError) {
+                Alert.alert("Erro", "Falha ao verificar o pagamento da viagem.");
+            }
 
             console.log("🚀 Enviando requisição para aceitar viagem:");
             console.log("URL:", url);
             console.log("Dados enviados:", requestData);
 
+            // Envia requisição para aceitar a viagem
             const response = await axiosInstance.put(url, requestData, {
                 headers: { "Content-Type": "application/json" },
             });
@@ -162,25 +218,25 @@ export const useRideWebSocket = ({ userId, userType }: {
 
             if (response.status === 200) {
                 Alert.alert("Sucesso", "Viagem aceita!");
-                setRideRequest(null);
+                setRideRequest(null); // Limpa a solicitação de viagem
                 router.push({
                     pathname: "/MapRide",
                     params: {
                         viagemId: viagemId,
-                        origem: typeof rideRequest?.origem === 'string'
-                            ? rideRequest.origem
-                            : JSON.stringify(rideRequest?.origem),
-                        destino: typeof rideRequest?.destino === 'string'
-                            ? rideRequest.destino
-                            : JSON.stringify(rideRequest?.destino),
+                        origem: typeof rideRequest?.origem === 'string' ? rideRequest.origem : JSON.stringify(rideRequest?.origem),
+                        destino: typeof rideRequest?.destino === 'string' ? rideRequest.destino : JSON.stringify(rideRequest?.destino),
                     },
                 });
+
+
             }
         } catch (error) {
             console.error("❌ Erro ao aceitar viagem:", error);
             Alert.alert("Erro", "Falha ao aceitar a viagem.");
         }
     };
+
+
 
 
     const rejectRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
@@ -208,6 +264,7 @@ export const useRideWebSocket = ({ userId, userType }: {
         }
     };
 
+    //CONCLUIR CORRIDA
     const concludeRide = async (viagemId: number, motoristaId: string, contaBancariaId: number) => {
         try {
             const requestData = { statusViagem: "CONCLUIDO" };
@@ -229,6 +286,7 @@ export const useRideWebSocket = ({ userId, userType }: {
                 router.push({
                     pathname: "/Home",
                 });
+
             }
         } catch (error) {
             console.error("❌ Erro ao concluir viagem:", error);

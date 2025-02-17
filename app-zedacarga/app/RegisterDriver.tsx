@@ -22,7 +22,6 @@ export default function RegisterDriver() {
     numero: '',
     cep: '',
     complemento: '',
-    rendaMensal: '',
     dataNascimento: '',
   });
 
@@ -54,8 +53,15 @@ export default function RegisterDriver() {
         bairro: formData.bairro,
         cep: formData.cep,
         complemento: formData.complemento,
-        rendaMensal: parseFloat(formData.rendaMensal), // Certifique-se de enviar um número
+        endereco: formData.endereco,
       };
+
+      console.log('Enviando requisição:', {
+        url: '/api/motorista',
+        method: 'POST',
+        payload
+      });
+
 
       const response = await axiosInstance.post("/api/motorista", payload);
 
@@ -74,15 +80,20 @@ export default function RegisterDriver() {
           numero: '',
           cep: '',
           complemento: '',
-          rendaMensal: '',
           dataNascimento: '',
         }); // Limpar formulário
         setCurrentPage(1); // Voltar para a primeira página
+        router.push('/EmailVerification'); // Redirecionar para a verificação de e-mail
+
       } else {
         alert(`Erro ao realizar o cadastro: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Erro na requisição:', error);
+      console.error('Erro na requisição:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       alert('Erro ao conectar-se ao servidor.');
     }
   };
@@ -136,12 +147,7 @@ export default function RegisterDriver() {
             value={formData.numeroCnh}
             onChangeText={(value) => handleChange('numeroCnh', value)}
           />
-          <Input
-            style={styles.input}
-            placeholder="Renda Mensal"
-            value={formData.rendaMensal}
-            onChangeText={(value) => handleChange('rendaMensal', value)}
-          />
+
           <TextInputMask
             style={styles.input}
             type={'datetime'}
@@ -192,12 +198,12 @@ export default function RegisterDriver() {
             value={formData.cep}
             onChangeText={(value) => handleChange('cep', value)}
           />
-          {/* <Input
+          <Input
             style={styles.input}
             placeholder="Endereço"
             value={formData.endereco}
             onChangeText={(value) => handleChange('endereco', value)}
-          /> */}
+          />
         </>
       )}
 
@@ -206,20 +212,19 @@ export default function RegisterDriver() {
           Anterior
         </Button>
         {currentPage === 2 ? (
-          <Button onPress={() => { handleSubmit(); router.push('/Login-driver') }}
+          <Button
+            onPress={handleSubmit}
             style={{
               backgroundColor: 'green',
             }}>
             Enviar
           </Button>
-
         ) : (
           <Button
             theme="green"
             onPress={handleNext}>
             Próximo
           </Button>
-
         )}
       </View>
 

@@ -16,6 +16,7 @@ interface Motorista {
         renavam: string;
         cor: string;
         ano: string;
+        fotoVeiculo?: string;
     };
 }
 
@@ -25,6 +26,7 @@ interface VeiculoFormData {
     renavam: string;
     cor: string;
     ano: string;
+    fotoVeiculo?: string;
 }
 
 export default function InfoCar() {
@@ -36,7 +38,8 @@ export default function InfoCar() {
         modelo: '',
         renavam: '',
         cor: '',
-        ano: ''
+        ano: '',
+        fotoVeiculo:'',
     });
 
     useEffect(() => {
@@ -170,6 +173,12 @@ export default function InfoCar() {
                                 placeholder="Ano"
                                 value={veiculoForm.ano}
                                 onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, ano: text }))}
+                                style={styles.input}
+                            />
+                            <Input
+                                placeholder="Foto do Veículo"
+                                value={veiculoForm.fotoVeiculo}
+                                onChangeText={(text) => setVeiculoForm(prev => ({ ...prev, fotoVeiculo: text }))}
                                 style={styles.input}
                             />
 

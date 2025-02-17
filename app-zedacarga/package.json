@@ -61,6 +61,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
     "react-native-text-input-mask": "^3.2.0",
+    "react-native-toast-message": "^2.2.1",
     "react-native-web": "^0.19.12",
     "sockjs-client": "^1.6.1",
     "stomp": "^0.1.1",

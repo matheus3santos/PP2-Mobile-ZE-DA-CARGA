@@ -11,6 +11,8 @@ import { useRouter } from "expo-router";
 import { useRideWebSocket } from '../../websocket/useRideWebSocket';
 import { RideRequest } from '../../websocket/types';
 import { styles } from '../../styles/HomeDriver.style';
+import Toast from 'react-native-toast-message';
+
 
 interface ContaBancaria {
   id?: number;
@@ -21,6 +23,7 @@ interface Motorista {
   email: string;
   contas?: ContaBancaria[];
   viagens?: ViagemSolicitadas[];
+  nome?: string;
 }
 
 interface ViagemSolicitadas {
@@ -36,6 +39,7 @@ export default function Index() {
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Novo estado para controlar a visibilidade do modal
   const [isPendingModalVisible, setIsPendingModalVisible] = useState<boolean>(false); // Modal para viagem PENDENTE
+  const [showRideModal, setShowRideModal] = useState(false);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
     id: 0,
   });
@@ -47,14 +51,26 @@ export default function Index() {
     statusViagem: "",
   });
 
+  const [motoristaForm, setMotoristaForm] = useState<Motorista>({
+    id: 0,
+    email: "",
+    nome: "",
+    contas: [],
+    viagens: [],
+  });
+
+
   const [hasPendingRide, setHasPendingRide] = useState<boolean>(false); // Estado para verificar se há viagens pendentes
   const { rideRequest, acceptRide, rejectRide, closeRide } = useRideWebSocket({
     userId: motoristaId,
     userType: 'motorista',
   });
 
+
   const clientRef = useRef<Client | null>(null);
   const router = useRouter();
+
+
 
   useEffect(() => {
     const getMotoristaId = async () => {
@@ -81,6 +97,14 @@ export default function Index() {
             setContaForm({ id: motoristaData.contas[0].id || '' });
           }
 
+          setMotoristaForm({
+            id: motoristaData.id || 0,
+            email: motoristaData.email,
+            nome: motoristaData.nome || '',
+            contas: motoristaData.contas,
+            viagens: motoristaData.viagens,
+          });
+
           const viagemPendente = motoristaData.viagens.find(
             (viagem: ViagemSolicitadas) => viagem.statusViagem === "PENDENTE"
           );
@@ -104,6 +128,20 @@ export default function Index() {
     };
     getMotoristaId();
   }, []);
+
+  useEffect(() => {
+    if (rideRequest) {
+      // Exibe o toast assim que a requisição de viagem chega
+      Toast.show({
+        type: 'success', // Define o tipo do toast, você pode customizar conforme necessário
+        text1: 'Nova solicitação de viagem recebida!',
+        text2: `Origem: ${rideRequest.origem} | Destino: ${rideRequest.destino}`, // Personaliza a mensagem
+        visibilityTime: 10000, // Define o tempo de visibilidade do Toast
+        onPress: () => setShowRideModal(true), // Aciona o modal para mostrar mais detalhes da viagem quando o Toast for pressionado
+      });
+    }
+  }, [rideRequest]); // O efeito será disparado toda vez que `rideRequest` for alterado
+
 
   const checkPendingRide = () => {
     if (hasPendingRide) {
@@ -158,7 +196,9 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <Modal visible={!!rideRequest} transparent={true} animationType="slide">
+      <Toast />
+      {/* Modal para nova solicitação de viagem */}
+      {/* <Modal visible={!!rideRequest} transparent={true} animationType="slide">
         {rideRequest && (
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -208,7 +248,7 @@ export default function Index() {
             </View>
           </View>
         )}
-      </Modal>
+      </Modal> */}
 
       {/* Modal para viagem PENDENTE */}
       <Modal visible={!!hasPendingRide} transparent={true} animationType="slide">
@@ -253,8 +293,9 @@ export default function Index() {
       </Modal>
 
       <View style={styles.imageContainer}>
-        <Text style={styles.title}>Bem-vindo, Motorista!</Text>
+        <Text style={styles.title}>Bem-vindo, {motoristaForm.nome}!</Text>
         <H3>Conta Bancária: {contaForm.id}</H3>
+
 
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>

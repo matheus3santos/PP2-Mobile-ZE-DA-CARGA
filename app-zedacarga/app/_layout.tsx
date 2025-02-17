@@ -110,6 +110,7 @@ function RootLayoutNav() {
           }}
         /> */}
 
+
         <Stack.Screen
           name="Login-driver"
           options={{
@@ -155,6 +156,16 @@ function RootLayoutNav() {
             animation: 'fade',
           }}
         /> */}
+
+
+        <Stack.Screen
+          name="EmailVerification"
+          options={{
+            title: 'EmailVerification',
+            headerShown: false, // Opcional, oculta o cabeçalho
+            animation: 'fade',
+          }}
+        />
 
 
 
