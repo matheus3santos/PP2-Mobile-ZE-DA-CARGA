@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
-import BottomBar from 'components/BottomBar';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Linking,
+  Text,
+} from "react-native";
+import { router } from "expo-router";
+import BottomBar from "components/BottomBar";
 import * as SecureStore from "expo-secure-store";
 import axiosInstance from "app/config/axiosUrlConfig";
-import { H4, H5, H6, Text } from "tamagui";
-import { Landmark, ArrowLeft, Calendar, MapPin, DollarSign } from '@tamagui/lucide-icons';
-import { styles } from '../../styles/TravelHistory.style';
+import {
+  Landmark,
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  DollarSign,
+} from "@tamagui/lucide-icons";
 
-
-interface Motorista {
-  id?: number;
-  email: string;
-  viagens?: Viagem[];
-}
+import { styles } from "../../styles/TravelHistory.style";
 
 interface Viagem {
   id: number;
@@ -24,77 +31,58 @@ interface Viagem {
   numeroProtocolo: string;
   dataVencimentoCobranca: string;
   pgtoStatus: string;
-}
-
-interface Location {
-  originalCoords: string;
-  address: string;
-  loading: boolean;
+  viagemComprovante?: string;
 }
 
 const TravelHistoryScreen = () => {
-  const [motorista, setMotorista] = useState<Motorista | null>(null);
-  const [loading, setLoading] = useState(true);
   const [viagensConcluidas, setViagensConcluidas] = useState<Viagem[]>([]);
-  const [locations, setLocations] = useState<{ [key: string]: Location }>({});
-
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfileData();
+    fetchViagens();
   }, []);
 
-  useEffect(() => {
-    if (viagensConcluidas.length > 0) {
-      fetchAllAddresses(viagensConcluidas);
-    }
-  }, [viagensConcluidas]);
-
-  const fetchProfileData = async () => {
+  const fetchViagens = async () => {
     try {
       const token = await SecureStore.getItemAsync("token");
-      const email = await SecureStore.getItemAsync("email");
-
-      if (!token || !email) {
-        router.push('/');
+      if (!token) {
+        router.push("/");
         return;
       }
 
-      const response = await axiosInstance.get("/api/motorista");
-      const motoristaData = response.data.find(
-        (m: Motorista) => m.email === email
+      const response = await axiosInstance.get("/api/viagem");
+
+      const concluidas = response.data.filter(
+        (viagem: Viagem) => viagem.statusViagem === "CONCLUIDO"
       );
 
-      if (motoristaData && motoristaData.viagens) {
-        setMotorista(motoristaData);
-        // Filtra apenas as viagens concluídas
-        const concluidas = motoristaData.viagens.filter(
-          (viagem: Viagem) => viagem.statusViagem === "CONCLUIDO"
-        );
-        setViagensConcluidas(concluidas);
-      }
+      console.log("Viagens concluídas:", concluidas);
+
+      setViagensConcluidas(concluidas);
     } catch (error) {
-      console.error("Erro ao recuperar dados do motorista:", error);
+      console.error("Erro ao buscar viagens:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatarValor = (valor: number) => {
-    return valor.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     });
   };
 
   const formatarData = (data: string) => {
-    return new Date(data).toLocaleDateString('pt-BR');
+    return data
+      ? new Date(data).toLocaleDateString("pt-BR")
+      : "Data não disponível";
   };
 
-  const renderLocation = (coords: string) => {
-    const location = locations[coords];
-    if (!location) return coords;
-    if (location.loading) return 'Carregando endereço...';
-    return location.address;
+  const abrirComprovante = (url: string) => {
+    Linking.openURL(url).catch((err) =>
+      console.error("Erro ao abrir URL:", err)
+    );
   };
 
   if (loading) {
@@ -105,169 +93,95 @@ const TravelHistoryScreen = () => {
     );
   }
 
-  // Função para converter coordenadas em endereço usando OpenStreetMap
-  const getAddressFromCoordinates = async (coords: string) => {
-    try {
-      // Verifica se as coordenadas estão no formato correto (latitude,longitude)
-      const [lat, lon] = coords.split(',').map(coord => parseFloat(coord.trim()));
-
-      if (isNaN(lat) || isNaN(lon)) {
-        throw new Error('Coordenadas inválidas');
-      }
-
-      // Adiciona um pequeno delay para evitar muitas requisições simultâneas
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=pt-BR`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'app-zedacarga' // É importante identificar sua aplicação
-          }
-        }
-      );
-
-      const data = await response.json();
-
-      // Formata o endereço de maneira mais amigável
-      const address = data.address;
-      let formattedAddress = '';
-
-      if (address.road) formattedAddress += address.road;
-      if (address.suburb) formattedAddress += `, ${address.suburb}`;
-      if (address.city) formattedAddress += `, ${address.city}`;
-      if (address.state) formattedAddress += ` - ${address.state}`;
-
-      return formattedAddress || data.display_name;
-    } catch (error) {
-      console.error('Erro ao converter coordenadas:', error);
-      return 'Endereço não encontrado';
-    }
-  };
-
-  // Função para buscar todos os endereços
-  const fetchAllAddresses = async (viagens: Viagem[]) => {
-    const newLocations: { [key: string]: Location } = {};
-
-    for (const viagem of viagens) {
-      // Processa origem
-      if (!locations[viagem.origem]) {
-        newLocations[viagem.origem] = {
-          originalCoords: viagem.origem,
-          address: '',
-          loading: true
-        };
-        const origemAddress = await getAddressFromCoordinates(viagem.origem);
-        newLocations[viagem.origem] = {
-          originalCoords: viagem.origem,
-          address: origemAddress,
-          loading: false
-        };
-      }
-
-      // Processa destino
-      if (!locations[viagem.destino]) {
-        newLocations[viagem.destino] = {
-          originalCoords: viagem.destino,
-          address: '',
-          loading: true
-        };
-        const destinoAddress = await getAddressFromCoordinates(viagem.destino);
-        newLocations[viagem.destino] = {
-          originalCoords: viagem.destino,
-          address: destinoAddress,
-          loading: false
-        };
-      }
-    }
-
-    setLocations(prev => ({ ...prev, ...newLocations }));
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.push('/(logged-driver)/Profile')}
+          onPress={() => router.push("/(logged-driver)/Profile")}
         >
           <ArrowLeft size={24} color="#2c3e50" />
         </TouchableOpacity>
         <Text style={styles.title}>Histórico de Viagens</Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {viagensConcluidas.length > 0 ? (
           viagensConcluidas.map((viagem, index) => (
             <View key={index} style={styles.tripCard}>
               <View style={styles.tripHeader}>
                 <Landmark size={24} color="#3498db" />
-                <Text style={styles.protocolText}>Protocolo: {viagem.numeroProtocolo}</Text>
+                <Text style={styles.protocolText}>
+                  Protocolo: {viagem.numeroProtocolo || "N/A"}
+                </Text>
               </View>
 
               <View style={styles.tripDetails}>
-                <View style={styles.locationContainer}>
+                <View style={styles.infoRow}>
                   <MapPin size={20} color="#2ecc71" />
-                  <View style={styles.locationText}>
-                    <Text style={styles.locationLabel}>Origem:</Text>
-                    <Text style={styles.locationValue}>
-                      {renderLocation(viagem.origem)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.locationContainer}>
-                  <MapPin size={20} color="#e74c3c" />
-                  <View style={styles.locationText}>
-                    <Text style={styles.locationLabel}>Destino:</Text>
-                    <Text style={styles.locationValue}>
-                      {renderLocation(viagem.destino)}
-                    </Text>
-                  </View>
+                  <Text style={styles.infoText}>
+                    Origem: {viagem.origem || "N/A"}
+                  </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <View style={styles.infoItem}>
-                    <Calendar size={20} color="#7f8c8d" />
-                    <Text style={styles.infoText}>
-                      {formatarData(viagem.dataVencimentoCobranca)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.infoItem}>
-                    <DollarSign size={20} color="#27ae60" />
-                    <Text style={styles.valueText}>
-                      {formatarValor(viagem.valor)}
-                    </Text>
-                  </View>
+                  <MapPin size={20} color="#e74c3c" />
+                  <Text style={styles.infoText}>
+                    Destino: {viagem.destino || "N/A"}
+                  </Text>
                 </View>
 
-                <View style={styles.statusContainer}>
-                  <Text style={styles.statusLabel}>Status Pagamento:</Text>
-                  <Text style={[
-                    styles.statusValue,
-                    { color: viagem.pgtoStatus === "PAGO" ? "#27ae60" : "#e74c3c" }
-                  ]}>
-                    {viagem.pgtoStatus}
+                <View style={styles.infoRow}>
+                  <Calendar size={20} color="#7f8c8d" />
+                  <Text style={styles.infoText}>
+                    {formatarData(viagem.dataVencimentoCobranca)}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <DollarSign size={20} color="#f1c40f" />
+                  <Text style={styles.infoText}>
+                    {formatarValor(viagem.valor)}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoText}>
+                    Status: {viagem.statusViagem || "N/A"}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoText}>
+                    Pagamento: {viagem.pgtoStatus || "N/A"}
                   </Text>
                 </View>
               </View>
+
+              {viagem.viagemComprovante ? (
+                <TouchableOpacity
+                  onPress={() => abrirComprovante(viagem.viagemComprovante)}
+                  style={styles.comprovanteButton}
+                >
+                  <Text style={styles.comprovanteText}>Abrir Comprovante</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.noImageText}>
+                  Comprovante não disponível
+                </Text>
+              )}
             </View>
           ))
         ) : (
-          <View style={styles.emptyContainer}>
-            <Landmark size={48} color="#bdc3c7" />
-            <Text style={styles.emptyText}>Nenhuma viagem concluída</Text>
-          </View>
+          <Text style={styles.noTripsText}>
+            Nenhuma viagem concluída encontrada.
+          </Text>
         )}
       </ScrollView>
 
-      <BottomBar screen="Home" />
+      <BottomBar screen="Profile" />
     </View>
   );
 };
-
-
 
 export default TravelHistoryScreen;

@@ -8,11 +8,10 @@ import SockJS from "sockjs-client";
 import axiosInstance from "app/config/axiosUrlConfig";
 import { H3, Button } from "tamagui";
 import { useRouter } from "expo-router";
-import { useRideWebSocket } from '../../websocket/useRideWebSocket';
-import { RideRequest } from '../../websocket/types';
-import { styles } from '../../styles/HomeDriver.style';
-import Toast from 'react-native-toast-message';
-
+import { useRideWebSocket } from "../../websocket/useRideWebSocket";
+import { RideRequest } from "../../websocket/types";
+import { styles } from "../../styles/HomeDriver.style";
+import Toast from "react-native-toast-message";
 
 interface ContaBancaria {
   id?: number;
@@ -35,10 +34,10 @@ interface ViagemSolicitadas {
 }
 
 export default function Index() {
-
   const [motoristaId, setMotoristaId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Novo estado para controlar a visibilidade do modal
-  const [isPendingModalVisible, setIsPendingModalVisible] = useState<boolean>(false); // Modal para viagem PENDENTE
+  const [isPendingModalVisible, setIsPendingModalVisible] =
+    useState<boolean>(false); // Modal para viagem PENDENTE
   const [showRideModal, setShowRideModal] = useState(false);
   const [contaForm, setContaForm] = useState<ContaBancaria>({
     id: 0,
@@ -59,18 +58,14 @@ export default function Index() {
     viagens: [],
   });
 
-
   const [hasPendingRide, setHasPendingRide] = useState<boolean>(false); // Estado para verificar se há viagens pendentes
   const { rideRequest, acceptRide, rejectRide, closeRide } = useRideWebSocket({
     userId: motoristaId,
-    userType: 'motorista',
+    userType: "motorista",
   });
-
 
   const clientRef = useRef<Client | null>(null);
   const router = useRouter();
-
-
 
   useEffect(() => {
     const getMotoristaId = async () => {
@@ -94,13 +89,13 @@ export default function Index() {
           // Se houver uma conta bancária associada, atualiza o estado
 
           if (motoristaData.contas.length > 0) {
-            setContaForm({ id: motoristaData.contas[0].id || '' });
+            setContaForm({ id: motoristaData.contas[0].id || "" });
           }
 
           setMotoristaForm({
             id: motoristaData.id || 0,
             email: motoristaData.email,
-            nome: motoristaData.nome || '',
+            nome: motoristaData.nome || "",
             contas: motoristaData.contas,
             viagens: motoristaData.viagens,
           });
@@ -133,8 +128,8 @@ export default function Index() {
     if (rideRequest) {
       // Exibe o toast assim que a requisição de viagem chega
       Toast.show({
-        type: 'success', // Define o tipo do toast, você pode customizar conforme necessário
-        text1: 'Nova solicitação de viagem recebida!',
+        type: "success", // Define o tipo do toast, você pode customizar conforme necessário
+        text1: "Nova solicitação de viagem recebida!",
         text2: `Origem: ${rideRequest.origem} | Destino: ${rideRequest.destino}`, // Personaliza a mensagem
         visibilityTime: 10000, // Define o tempo de visibilidade do Toast
         onPress: () => setShowRideModal(true), // Aciona o modal para mostrar mais detalhes da viagem quando o Toast for pressionado
@@ -142,12 +137,14 @@ export default function Index() {
     }
   }, [rideRequest]); // O efeito será disparado toda vez que `rideRequest` for alterado
 
-
   const checkPendingRide = () => {
     if (hasPendingRide) {
       setIsPendingModalVisible(true); // Abre o modal de viagem PENDENTE
     } else {
-      Alert.alert("Sem Viagens Pendentes", "Não há viagens pendentes no momento.");
+      Alert.alert(
+        "Sem Viagens Pendentes",
+        "Não há viagens pendentes no momento."
+      );
     }
   };
 
@@ -191,8 +188,6 @@ export default function Index() {
   const handleCloseModal = () => {
     closeRide(); // ou qualquer outra lógica para fechar o modal
   };
-
-
 
   return (
     <View style={styles.container}>
@@ -251,7 +246,11 @@ export default function Index() {
       </Modal> */}
 
       {/* Modal para viagem PENDENTE */}
-      <Modal visible={!!hasPendingRide} transparent={true} animationType="slide">
+      <Modal
+        visible={!!hasPendingRide}
+        transparent={true}
+        animationType="slide"
+      >
         {hasPendingRide && (
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -275,15 +274,23 @@ export default function Index() {
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Valor:</Text>
-                  <Text style={styles.infoValue}>R$ {viagens.valor.toFixed(2)}</Text>
+                  <Text style={styles.infoValue}>
+                    R$ {viagens.valor.toFixed(2)}
+                  </Text>
                 </View>
               </View>
 
               <View style={styles.buttonContainer}>
-                <Button onPress={handleRejectPendingRide} style={styles.rejectButton}>
+                <Button
+                  onPress={handleRejectPendingRide}
+                  style={styles.rejectButton}
+                >
                   Recusar
                 </Button>
-                <Button onPress={handleAcceptPendingRide} style={styles.acceptButton}>
+                <Button
+                  onPress={handleAcceptPendingRide}
+                  style={styles.acceptButton}
+                >
                   Aceitar
                 </Button>
               </View>
@@ -295,7 +302,6 @@ export default function Index() {
       <View style={styles.imageContainer}>
         <Text style={styles.title}>Bem-vindo, {motoristaForm.nome}!</Text>
         <H3>Conta Bancária: {contaForm.id}</H3>
-
 
         {motoristaId ? (
           <Text>ID do Motorista: {motoristaId}</Text>
