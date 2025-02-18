@@ -160,7 +160,7 @@ const TravelHistoryScreen = () => {
 
               {viagem.viagemComprovante ? (
                 <TouchableOpacity
-                  onPress={() => abrirComprovante(viagem.viagemComprovante)}
+                  onPress={() => viagem.viagemComprovante && abrirComprovante(viagem.viagemComprovante)}
                   style={styles.comprovanteButton}
                 >
                   <Text style={styles.comprovanteText}>Abrir Comprovante</Text>
