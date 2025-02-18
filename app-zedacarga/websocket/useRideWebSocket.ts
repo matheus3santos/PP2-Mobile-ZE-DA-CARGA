@@ -21,7 +21,7 @@ export const useRideWebSocket = ({
     if (!userId) return;
 
     const socket = new SockJS(
-      "https://6935-2804-14d-5483-45d0-54b6-f52e-4499-d22c.ngrok-free.app/ws"
+      "https://3593-2804-14d-5483-45d0-61db-6040-5128-4ead.ngrok-free.app/ws"
     );
     const client = new Client({
       webSocketFactory: () => socket,
